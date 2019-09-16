@@ -1,115 +1,184 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow
- */
-
-import React, {Fragment} from 'react';
+import React, { Component } from 'react';
 import {
-  SafeAreaView,
-  StyleSheet,
-  ScrollView,
-  View,
-  Text,
-  StatusBar,
+    View,
+    Text,
+    Button,
+    PermissionsAndroid,
+    StyleSheet,
+    StatusBar
 } from 'react-native';
+import { createAppContainer } from 'react-navigation'
+import { Provider as PaperProvider, DefaultTheme } from 'react-native-paper';
 
-import {
-  Header,
-  LearnMoreLinks,
-  Colors,
-  DebugInstructions,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-import DatabaseUtil from './src/database/DatabaseUtil'
+import MainNavigator from './src/navigators/MainNavigator'
+// import MapView from 'react-native-maps'
+// import Geolocation from 'react-native-geolocation-service';
 
-const App = () => {
-  return (
-    <Fragment>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={styles.scrollView}>
-          <Header />
-          {global.HermesInternal == null ? null : (
-            <View style={styles.engine}>
-              <Text style={styles.footer}>Engine: Hermes</Text>
-            </View>
-          )}
-          <View style={styles.body}>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Step One</Text>
-              <Text style={styles.sectionDescription}>
-                Edit <Text style={styles.highlight}>App.js</Text> to change this
-                screen and then come back to see your edits.
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>See Your Changes</Text>
-              <Text style={styles.sectionDescription}>
-                <ReloadInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Debug</Text>
-              <Text style={styles.sectionDescription}>
-                <DebugInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Learn More</Text>
-              <Text style={styles.sectionDescription}>
-                Read the docs to discover what to do next:
-              </Text>
-            </View>
-            <LearnMoreLinks />
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </Fragment>
-  );
-};
+// import Car from './src/components/Car'
 
-const styles = StyleSheet.create({
-  scrollView: {
-    backgroundColor: Colors.lighter,
-  },
-  engine: {
-    position: 'absolute',
-    right: 0,
-  },
-  body: {
-    backgroundColor: Colors.white,
-  },
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: Colors.black,
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-    color: Colors.dark,
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-  footer: {
-    color: Colors.dark,
-    fontSize: 12,
-    fontWeight: '600',
-    padding: 4,
-    paddingRight: 12,
-    textAlign: 'right',
-  },
-});
+const NavigatorAppContainer = createAppContainer(MainNavigator);
 
-export default App;
+export default class App extends Component {
+    render() {
+        return (
+            <PaperProvider>
+                <StatusBar backgroundColor={DefaultTheme.colors.primary} barStyle="light-content" />
+                <NavigatorAppContainer />
+            </PaperProvider>
+        );
+    }
+}
+
+
+
+
+
+
+
+/*
+
+
+
+  requestLocationPermission = async function () {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        {
+          'title': 'Example App',
+          'message': 'Example App access to your location '
+        }
+      )
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        this.getUserCurrentLocation();
+      } else {
+        console.log("location permission denied")
+        alert("Location permission denied");
+      }
+    } catch (err) {
+      console.warn(err)
+    }
+  }
+
+  getUserCurrentLocation = () => {
+    Geolocation.getCurrentPosition(
+      (position) => {
+        console.log(position);
+
+        let userCurrentLocation = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          latitudeDelta: 0.045,
+          longitudeDelta: 0.045,
+        };
+
+        this.setState({ userCurrentLocation });
+      },
+      (error) => {
+        // See error code charts below.
+        console.log(error.code, error.message);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+    );
+  }
+
+  componentDidMount = () => {
+    // this.findCoordinates();
+
+
+
+
+  };
+
+
+
+
+this.state = {
+      userCurrentLocation: null
+    };
+
+     {
+      latitude: 29.62848472,
+      longitude: 52.51827648,
+      latitudeDelta: 0.045,
+      longitudeDelta: 0.045,
+    }
+
+
+    this.requestLocationPermission()
+
+
+
+
+
+ <MapView
+        style={{ flex: 1 }}
+        showsUserLocation={true}
+        showsCompass={true}
+        rotateEnabled={false}
+        initialRegion={this.state.userCurrentLocation}
+      >
+
+        <Car car={{
+          id: 'null',
+          location: {
+            latitude: 29.62548472,
+            longitude: 52.51827648
+          },
+          heading: 320
+        }} />
+
+
+        <Car car={{
+          id: 'null2',
+          location: {
+            latitude: 29.63116573,
+            longitude: 52.51827648
+          },
+          heading: 300
+        }} />
+
+
+
+
+        <Car car={{
+          id: 'null4',
+          location: {
+            latitude: 29.63046573,
+            longitude: 52.52827648
+          },
+          heading: 200
+        }} />
+
+
+
+
+        <Car car={{
+          id: 'null3',
+          location: {
+            latitude: 29.62806573,
+            longitude: 52.50827648
+          },
+          heading: 350
+        }} />
+
+
+        <Car car={{
+          id: 'null3',
+          location: {
+            latitude: 29.62756573,
+            longitude: 52.51827648
+          },
+          heading: 150
+        }} />
+
+
+        <Car car={{
+          id: 'null3',
+          location: {
+            latitude: 29.62546573,
+            longitude: 52.52327648
+          },
+          heading: 50
+        }} />
+
+      </MapView> */
