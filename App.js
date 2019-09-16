@@ -23,6 +23,7 @@ import {
   DebugInstructions,
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
+import DatabaseUtil from './src/database/DatabaseUtil'
 
 const App = () => {
   return (
