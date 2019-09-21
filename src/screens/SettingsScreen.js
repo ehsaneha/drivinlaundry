@@ -12,28 +12,30 @@ import ImagePicker from 'react-native-image-picker';
 
 import NetworkUtil from '../network/NetworkUtil'
 import DatabaseUtil from '../database/DatabaseUtil'
+import LogoutIcon from '../components/LogoutIcon'
 
 class SettingsScreen extends Component {
 
     constructor(props) {
         super(props);
 
-        const { id, name, phone, password, avatar } = DatabaseUtil.data.setting;
+        const { id, name, phone, password, avatar, cost } = DatabaseUtil.data.setting;
         this.state = {
             id,
             avatarSource: { uri: NetworkUtil.getAvatarUri(avatar), cache: 'reload' },
             nameText: name,
             phoneText: phone,
             passwordText: password,
+            costText: cost,
             backLoading: false,
         };
 
     }
 
     _backPressed = () => {
-        const { nameText, phoneText, passwordText } = this.state;
-        const { name, phone, password } = DatabaseUtil.data.setting;
-        if (nameText !== name || phoneText !== phone || passwordText !== password) {
+        const { nameText, phoneText, passwordText, costText } = this.state;
+        const { name, phone, password, cost } = DatabaseUtil.data.setting;
+        if (nameText !== name || phoneText !== phone || passwordText !== password || costText !== cost) {
 
             this.setState((prevState) => {
                 state = { ...prevState };
@@ -46,8 +48,8 @@ class SettingsScreen extends Component {
                         console.log(response);
                         DatabaseUtil.setSettingFromResponse(response);
 
-                        DatabaseUtil.storeSetting()
-                            .then(() => this.props.navigation.goBack(null));
+                        DatabaseUtil.storeSetting();
+                        this.props.navigation.goBack(null);
 
                     });
 
@@ -86,9 +88,6 @@ class SettingsScreen extends Component {
                 console.log('User tapped custom button: ', response.customButton);
             } else {
                 const source = { uri: response.uri };
-
-                // You can also display the image using data:
-                // const source = { uri: 'data:image/jpeg;base64,' + response.data };
 
                 // this.setState({
                 //   avatarSource: source,
@@ -131,6 +130,21 @@ class SettingsScreen extends Component {
                     onPress={this._backPressed} 
                 />
             );
+    }
+
+    _renderCostInputIfUserIsDriver = () => {
+        if(DatabaseUtil.data.setting.userType != 1) {
+            const { costText } = this.state;
+            return(
+                <TextInput
+                    style={styles.textInput}
+                    label='cost'
+                    value={costText}
+                    onChangeText={costText => this.setState({ costText })}
+                    keyboardType={'numeric'}
+                />
+            );
+        }
     }
 
     render() {
@@ -192,8 +206,12 @@ class SettingsScreen extends Component {
                     secureTextEntry={true}
                 />
 
+                {this._renderCostInputIfUserIsDriver()}
+
                 <Button 
-                    icon="offline-pin"
+                    icon={({ size, color }) => (
+                        <LogoutIcon name={'logout'} size={size} color={color} />
+                    )}
                     onPress={this._SignOutButtonPresssed}
                     style={{marginTop: 10,  width: 180}}
                     uppercase={false}

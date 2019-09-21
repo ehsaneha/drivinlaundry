@@ -1,9 +1,11 @@
 import React, { Component } from "react";
-import { 
+import {
     View,
     Text,
-    StyleSheet
+    StyleSheet,
+    Image,
 } from "react-native";
+import { Appbar, FAB, ActivityIndicator, DefaultTheme, Title } from 'react-native-paper';
 
 import DatabaseUtil from '../database/DatabaseUtil'
 import ServiceProcess from '../components/ServiceProcess'
@@ -11,16 +13,39 @@ import ServiceProcess from '../components/ServiceProcess'
 class ServiceProcessScreen extends Component {
 
     _onServiceProcessDone = () => {
-        this.props.navigation.navigate('ClothingSelection');
+        this.props.navigation.navigate('Rating');
     }
 
     render() {
         return (
-            <View style={styles.container}>
-                <ServiceProcess 
-                    info={DatabaseUtil.data.order} 
-                    onDone={this._onServiceProcessDone}
-                />
+            <View style={{ flex: 1 }}>
+                <Appbar.Header>
+                        {/* <View style={{ flexDirection: 'row', height: 40, marginLeft: 10 }}>
+                            <Image
+                                style={{ height: 40, width: 40 }}
+                                source={require('../assets/imgs/logo.png')}
+                            />
+                            <View style={{ marginLeft: 10 }}>
+                                <Text style={{ color: 'white' }}>
+                                    Drivin'
+                                </Text>
+                                <Text style={{ marginTop: -5, color: 'white' }}>
+                                    Laundry
+                            </Text>
+                            </View>
+                        </View> */}
+                        <Appbar.Content
+                            titleStyle={{ textAlign: 'center' }}//, paddingRight: 15
+                            title="Service Process"
+                        />
+                    </Appbar.Header>
+
+
+                    <ServiceProcess
+                        info={DatabaseUtil.data.order}
+                        onDone={this._onServiceProcessDone}
+                    />
+
             </View>
         );
     }

@@ -6,6 +6,7 @@ import {
     SignUpScreen,
     OrderScreen,
     ServiceProcessScreen,
+    RatingScreen,
     SettingsScreen,
     HomeDriverScreen,
 } from '../screens'
@@ -22,6 +23,7 @@ const MainNavigator = createStackNavigator(
         App: AppNavigator,
         Order: OrderScreen,
         ServiceProcess: ServiceProcessScreen,
+        Rating: RatingScreen,
     },
     {
         headerMode: 'none',

@@ -14,7 +14,7 @@ import { Avatar, Badge } from 'react-native-paper';
 class ClothingListItem extends Component {
 
     state = {
-        count: 0
+        count: this.props.count
     };
 
     _increamentCount = () => {
@@ -27,7 +27,7 @@ class ClothingListItem extends Component {
         this.props.onChange(this.props.itemInfo.key, 0);
     };
 
-    _renderDeleteBadge = () => {
+    _renderDeleteBadgeIfNeeded = () => {
         if(this.state.count > 0) {
             return (
                 <TouchableOpacity onPress={this._delete} style={{ position: 'absolute', left: 0 }} >
@@ -38,7 +38,7 @@ class ClothingListItem extends Component {
         }
     }
     
-    _renderCountBadge = () => {
+    _renderCountBadgeIfNeeded = () => {
         if(this.state.count > 0) {
             return (
                 <Badge style={{ position: 'absolute', bottom: 0 }}>{this.state.count}</Badge>
@@ -64,8 +64,8 @@ class ClothingListItem extends Component {
                     />
                 </TouchableOpacity>
 
-                { this._renderCountBadge() }
-                { this._renderDeleteBadge() }
+                { this._renderCountBadgeIfNeeded() }
+                { this._renderDeleteBadgeIfNeeded() }
             </View>
         );
     }

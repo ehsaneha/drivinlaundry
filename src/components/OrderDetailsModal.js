@@ -9,6 +9,7 @@ import { DefaultTheme, Avatar, Button, Card, Title, Paragraph, TextInput, Dialog
 import { AirbnbRating } from 'react-native-ratings';
 
 import OrderDetailsModelClothingListItem from '../components/OrderDetailsModelClothingListItem'
+import NetworkUtil from '../network/NetworkUtil'
 
 class OrderDetailsModal extends Component {
 
@@ -36,6 +37,10 @@ class OrderDetailsModal extends Component {
             { iconName: 'Asset-126mdpi', count: 20 },
         ];
 
+        const {driver, laundry, clothings, done_time} = this.props.itemInfo;
+        const driverAvatarSource = NetworkUtil.getAvatarUri(driver.avatar);
+        const laundryAvatarSource = NetworkUtil.getAvatarUri(laundry.avatar);
+
         return (
             <Card style={{ marginHorizontal: 10 }}>
                 <Card.Content >
@@ -55,13 +60,17 @@ class OrderDetailsModal extends Component {
                         horizontal={true}
                         showsHorizontalScrollIndicator={false}
                         style={{ marginTop: 10 }}
-                        data={data}
+                        data={clothings}
                         renderItem={this._renderEachListItem}
                         keyExtractor={(item, index) => index.toString()}
                     />
                     <View style={{ flexDirection: 'row', marginTop: 10 }}>
+                        
+                    <Avatar.Image
+                        source={driverAvatarSource}
+                        key={driverAvatarSource.uri}
+                    />
 
-                        <Avatar.Icon icon="local-taxi" />
                         <View style={{ marginLeft: 15 }}>
                             <Title>Card title</Title>
                             <Paragraph>Card content</Paragraph>
@@ -76,7 +85,11 @@ class OrderDetailsModal extends Component {
                     </View>
                     <View style={{ flexDirection: 'row', marginTop: 10 }}>
 
-                        <Avatar.Icon icon="local-laundry-service" />
+                    <Avatar.Image
+                        source={laundryAvatarSource}
+                        key={laundryAvatarSource.uri}
+                    />
+
                         <View style={{ marginLeft: 15 }}>
                             <Title>Card title</Title>
                             <Paragraph>Card content</Paragraph>

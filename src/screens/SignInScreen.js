@@ -31,6 +31,7 @@ class SignInScreen extends Component {
     }
 
     _signInPressed = () => {
+        // this.props.navigation.navigate('Home');
         Keyboard.dismiss();
         this.setState((prevState) => {
             state = { ...prevState };
@@ -44,7 +45,10 @@ class SignInScreen extends Component {
                         DatabaseUtil.setSettingFromResponse(response);
 
                         DatabaseUtil.storeSetting()
-                            .then(() => this.props.navigation.navigate('Home'));
+                            .then(() => {
+                                const { userType } = DatabaseUtil.data.setting;
+                                this.props.navigation.navigate(userType === 1 ? 'Home' : 'HomeDriver')
+                            });
 
                     }
                     else {

@@ -3,6 +3,7 @@ import {
     View,
     Text,
     StyleSheet,
+    ToastAndroid,
     FlatList
 } from "react-native";
 
@@ -18,6 +19,13 @@ class ClothingSelectionScreen extends Component {
 
         this.clothings = {};
 
+        const {order} = DatabaseUtil.data;
+        if(order.clothings.length > 0) {
+            order.clothings.forEach(element => {
+                this.clothings[element.type] = element.count;
+            });
+        }
+
         this._onItemChange = this._onItemChange.bind(this);
         this.beforeNextFABPressed = this.beforeNextFABPressed.bind(this);
     }
@@ -28,6 +36,7 @@ class ClothingSelectionScreen extends Component {
 
     beforeNextFABPressed = () => {
         if (Object.keys(this.clothings).length === 0) {
+            ToastAndroid.show('You should select at least one item!', ToastAndroid.SHORT);
             return false;
         }
 
@@ -45,7 +54,7 @@ class ClothingSelectionScreen extends Component {
     _generateListItemsData = () => {
         let result = [];
         for (let i = 21; i < 59; i++) {
-            result.push({ title: 'Title Text', key: i - 21, iconName: `Asset-1${i}mdpi` });
+            result.push({ title: 'Title Text', key: i - 21, iconName: `Asset-1${i}mdpi`, count: (this.clothings[i - 21] ? this.clothings[i - 21] : 0) });
         }
         return result;
     }
@@ -64,6 +73,7 @@ class ClothingSelectionScreen extends Component {
             <ClothingListItem
                 itemInfo={item}
                 iconName={item.iconName}
+                count={item.count}
                 onChange={this._onItemChange}
             />
         );

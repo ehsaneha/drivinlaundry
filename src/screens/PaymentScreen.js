@@ -2,7 +2,8 @@ import React, { Component } from "react";
 import {
     View,
     Text,
-    StyleSheet
+    StyleSheet,
+    ToastAndroid,
 } from "react-native";
 import { Button, ActivityIndicator, DefaultTheme } from 'react-native-paper';
 import { NavigationActions, StackActions } from 'react-navigation'
@@ -34,40 +35,49 @@ class PaymentScreen extends Component {
                 console.log(response);
                 DatabaseUtil.setOrderFromResponse(response);
                 if (DatabaseUtil.orderHasChanged()) {
-                    // this.props.navigation.navigate('ServiceProcess');
+
+                    DatabaseUtil.storeOrder();
+                    this.props.navigation.navigate('ServiceProcess');
+
+
                     
-                    const resetAction = StackActions.reset({
-                        index: 0,
-                        actions: [NavigationActions.navigate({ routeName: 'ServiceProcess' })],
-                      });
-                      this.props.navigation.dispatch(resetAction);
+
+                    // const resetAction = StackActions.reset({
+                    //     index: 0,
+                    //     actions: [NavigationActions.navigate({ routeName: 'ServiceProcess' })],
+                    // });
+                    // this.props.navigation.dispatch(resetAction);
 
 
                 }
+            })
+            .catch((error) => {
+                ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
+                this.setState({
+                    payLoading: false,
+                });
             });
     }
 
     _renderPaypalButtonOrActivityIndicator = () => {
-        if (this.state.payLoading) {
-            return (
+        return this.state.payLoading ?
+            (
                 <ActivityIndicator
                     animating={true}
                     color={DefaultTheme.colors.primary}
                     // size={'large'}
-                    style={{marginBottom: 10}}
+                    style={{ marginBottom: 10 }}
                 />
+            ) :
+            (
+                <Button
+                    mode="contained"
+                    style={{ marginBottom: 20 }}
+                    onPress={this._paypalPaymentPressed}
+                >
+                    PayPal
+                </Button>
             );
-        }
-
-        return (
-            <Button
-                mode="contained"
-                style={{ marginBottom: 20 }}
-                onPress={this._paypalPaymentPressed}
-            >
-                PayPal
-            </Button>
-        );
 
     }
 
@@ -77,11 +87,11 @@ class PaymentScreen extends Component {
 
                 {this._renderPaypalButtonOrActivityIndicator()}
 
-                <Button
+                {/* <Button
                     mode="contained"
                     onPress={() => console.log('Pressed')}>
                     PaymentScreen
-                </Button>
+                </Button> */}
             </View>
         );
     }

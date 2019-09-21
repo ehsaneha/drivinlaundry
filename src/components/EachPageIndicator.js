@@ -9,6 +9,8 @@ import {
 import Icon from 'react-native-vector-icons/dist/MaterialIcons';
 import { DefaultTheme } from 'react-native-paper'
 
+import TShirtIcon from '../components/TShirtIcon'
+
 class EachPageIndicator extends Component {
 
     constructor(props) {
@@ -31,6 +33,7 @@ class EachPageIndicator extends Component {
             this.color = this.deActivatedColor;
         }
 
+        this._renderIcon = this._renderIcon.bind(this);
 
     }
 
@@ -71,6 +74,30 @@ class EachPageIndicator extends Component {
     //     }).start();
     // }
 
+    _renderIcon = () => {
+        const { index, iconName } = this.props;
+
+        return index === 0 ?
+        (
+            <TShirtIcon
+                name={iconName}
+                size={27}
+                style={{
+                    color: this.color
+                }} 
+            />
+        ) :
+        (
+            <Icon
+                name={iconName}
+                size={30}
+                style={{
+                    color: this.color
+                }} 
+            />
+        );
+    }
+
     render() {
         const backgroundColor = this.backgroundColor.interpolate({
             inputRange: [0, 150],
@@ -79,13 +106,7 @@ class EachPageIndicator extends Component {
 
         return (
             <Animated.View style={[styles.icon, { backgroundColor, borderColor: this.deActivatedColor, }, this.props.style]}>
-                <Icon
-                    name={this.props.iconName}
-                    size={30}
-                    style={{
-                        color: this.color
-                    }} 
-                />
+                {this._renderIcon()}
             </Animated.View>
         );
     }

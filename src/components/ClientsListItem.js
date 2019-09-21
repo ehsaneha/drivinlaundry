@@ -5,6 +5,7 @@ import {
     StyleSheet
 } from "react-native";
 import { Appbar, Avatar, Button, Card, Title, Paragraph, FAB, TextInput, DefaultTheme } from 'react-native-paper';
+import { AirbnbRating } from 'react-native-ratings';
 
 class ClientsListItem extends Component {
     
@@ -21,13 +22,13 @@ class ClientsListItem extends Component {
     }
 
     _onPress = () => {
-        const {id, name, phone, avatar} = this.props.itemInfo;
+        const {id, name, phone, avatar, cost} = this.props.itemInfo;
 
         this.setState({
             active: true
         });
 
-        this.props.onPressItem(id, name, phone, avatar);
+        this.props.onPressItem(id, name, phone, avatar, cost);
     }
 
     deActivate = () => {
@@ -40,32 +41,53 @@ class ClientsListItem extends Component {
         const activeTheme = { textColor: 'white', backgroundColor: DefaultTheme.colors.primary };
         const deActiveTheme = { textColor: 'black', backgroundColor: 'white' };
 
-        const {itemInfo, iconName} = this.props;
+        const {itemInfo, iconName, avatarSource} = this.props;
         const {card, container} = styles;
         const { active } = this.state;
-        
+
+        const rating = itemInfo.rating == '' ? 3 : Math.round(itemInfo.rating);
+        const cost = itemInfo.cost == '' ? 5 : itemInfo.cost;
+
         return (
             <Card 
                 style={[card, {backgroundColor: active ? activeTheme.backgroundColor : deActiveTheme.backgroundColor}]} 
                 onPress={this._onPress}
             >
                 <Card.Content style={container}>
-                    <Avatar.Icon icon={iconName} />
-                    <View>
+                    {/* <Avatar.Icon icon={iconName} /> */}
+                    <Avatar.Image
+                        // size={160}
+                        source={avatarSource}
+                        key={avatarSource.uri}
+                    />
 
                         <Title
-                            style={{color: active ? activeTheme.textColor : deActiveTheme.textColor}}
+                            style={{
+                                color: active ? activeTheme.textColor : deActiveTheme.textColor,
+                                fontSize: 15
+                            }}
                         >
                             {itemInfo.name}
                         </Title>
 
-                        <Paragraph
-                            style={{color: active ? activeTheme.textColor : deActiveTheme.textColor}}
-                        >
-                            Card content
-                        </Paragraph>
+                        <AirbnbRating
+                            size={15}
+                            defaultRating={rating}
+                            count={rating}
+                            isDisabled
+                            showRating={false}
+                            onFinishRating={this.ratingCompleted}
+                            selectedColor={active ? activeTheme.textColor : DefaultTheme.colors.primary}
+                        />
 
-                    </View>
+                        <Title
+                            style={{
+                                color: active ? activeTheme.textColor : deActiveTheme.textColor,
+                                fontSize: 15
+                            }}
+                        >
+                            {cost} $
+                        </Title>
                 </Card.Content>
             </Card>
         );

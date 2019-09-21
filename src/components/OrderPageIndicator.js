@@ -80,7 +80,9 @@ class OrderPageIndicator extends Component {
                             style={{
                                 marginLeft: index === 0 ? 0 : 10
                             }} 
-                            active={index === 0} />
+                            active={index === 0} 
+                            index={index}
+                        />
                     );
                 })}
             </Animated.View>

@@ -5,65 +5,194 @@ import {
     StyleSheet,
     FlatList,
     BackHandler,
+    Image,
+    ToastAndroid,
 } from "react-native";
-import { Modal, Portal, Appbar, Avatar, Button, Card, Title, Paragraph, FAB, TextInput } from 'react-native-paper';
+import { Modal, Portal, Appbar, FAB, ActivityIndicator, DefaultTheme } from 'react-native-paper';
+import Icon from 'react-native-vector-icons/dist/MaterialCommunityIcons';
 
 import OrderListItem from '../components/OrderListItem'
-import OrderDetailsModal from '../components/OrderDetailsModal'
 import ExitOnBackButton from '../components/ExitOnBackButton'
+import DatabaseUtil from "../database/DatabaseUtil";
+import NetworkUtil from "../network/NetworkUtil";
 
 class HomeScreen extends Component {
-    state = {
-        text: '',
-        visible: false,
-    };
+    constructor() {
+        super();
 
-    _showModal = () => this.setState({ visible: true });
-    _hideModal = () => this.setState({ visible: false });
+        this.state = {
+            text: '',
+            visible: false,
+            loading: true,
+            history: [],
+            reloadFABVisible: false,
+            addFABVisible: false,
+        };
 
-    _renderEachOrderListItem = ({ eachOrder }) => {
+        this._onItemPressed = this._onItemPressed.bind(this);
+
+    }
+
+    _reloadHistory = () => {
+        NetworkUtil.getAllClothingsOfOrdersByUserId(DatabaseUtil.data.setting)
+            .then((response) => {
+                console.log(response);
+                DatabaseUtil.setHistoryFromResponse(response);
+                console.log(DatabaseUtil.data.history);
+                this.setState({
+                    history: DatabaseUtil.data.history,
+                    loading: false,
+                    reloadFABVisible: response.length > 0,
+                    addFABVisible: response.length > 0,
+                });
+            })
+            .catch((error) => {
+                ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
+                this.setState({
+                    loading: false,
+                    reloadFABVisible: true,
+                });
+            });
+    }
+
+    componentDidMount = () => {
+        if (this.state.history.length === 0) {
+            this._reloadHistory();
+        }
+        else {
+            this.setState({
+                loading: false,
+            });
+        }
+
+
+    }
+
+    // _showModal = () => this.setState({ visible: true });
+    // _hideModal = () => this.setState({ visible: false });
+
+    _onItemPressed = (index) => {
+        console.log(index);
+        DatabaseUtil.data.order.clothings = this.state.history[index];
+        this.props.navigation.navigate('Order');
+    }
+
+    _renderEachOrderListItem = ({ item, index }) => {
         return (
             <OrderListItem
-                orderInfo={eachOrder}
-                onPressItem={() => this._showModal()}
+                itemInfo={item}
+                index={index}
+                onPressItem={this._onItemPressed}
             />
         );
+    }
+
+    _renderLoadingOrFlatListIfHistoryExists = () => {
+        const { loading, history } = this.state;
+        if (loading) {
+            console.log('loading');
+            return (
+                <ActivityIndicator
+                    style={{ marginTop: 200 }}
+                    animating={true}
+                    color={DefaultTheme.colors.primary}
+                    size={'large'}
+                />
+            );
+        }
+        else {
+            return history ?
+                (
+                    <FlatList
+                        data={history}
+                        renderItem={this._renderEachOrderListItem}
+                    />
+                ) :
+                (
+                    <Text>
+                        You have no history yet!
+                    </Text>
+                );
+
+        }
+    }
+
+    _reloadFABPressed = () => {
+        this.setState({
+            // history: [],
+            loading: true,
+            reloadFABVisible: false,
+            addFABVisible: false,
+        },
+        this._reloadHistory);
+    }
+
+    _renderAddFAB = () => {
+        if (this.state.addFABVisible) {
+            return (
+                <FAB
+                    color={'white'}
+                    style={[styles.fab, {backgroundColor: DefaultTheme.colors.primary}]}
+                    icon="add"
+                    onPress={() => this.props.navigation.navigate('Order')}
+                />
+            );
+        }
+    }
+
+    _renderReloadFAB = () => {
+        if (this.state.reloadFABVisible) {
+            return (
+                <FAB
+                    color={'white'}
+                    style={[styles.reloadFAB, {backgroundColor: DefaultTheme.colors.primary}]}
+                    icon={({ size, color }) => (
+                        <Icon name={'reload'} size={size} color={color} />
+                    )}
+                    onPress={this._reloadFABPressed}
+                />
+            );
+        }
     }
 
     render() {
         return (
             <ExitOnBackButton>
-            <View style={{ flex: 1 }}>
-                <Appbar.Header>
-                    <Appbar.Content />
-                    <Appbar.Action icon="settings" onPress={() => this.props.navigation.push('Settings')} />
-                </Appbar.Header>
+                <View style={{ flex: 1 }}>
+                    <Appbar.Header>
+                        <View style={{ flexDirection: 'row', height: 40, marginLeft: 10 }}>
+                            <Image
+                                style={{ height: 40, width: 40 }}
+                                source={require('../assets/imgs/logo.png')}
+                            />
+                            <View style={{ marginLeft: 10 }}>
+                                <Text style={{ color: 'white' }}>
+                                    Drivin'
+                            </Text>
+                                <Text style={{ marginTop: -5, color: 'white' }}>
+                                    Laundry
+                            </Text>
+                            </View>
+                        </View>
+                        <Appbar.Content />
+                        <Appbar.Action icon="settings" onPress={() => this.props.navigation.push('Settings')} />
+                    </Appbar.Header>
 
-                <FlatList
-                    data={[
-                        { title: 'Title Text', key: 'item1' },
-                        { title: 'Title Text', key: 'item1' },
-                        { title: 'Title Text', key: 'item1' },
-                        { title: 'Title Text', key: 'item1' },
-                        { title: 'Title Text', key: 'item1' },
-                        { title: 'Title Text', key: 'item1' },
-                        { title: 'Title Text', key: 'item1' },
-                        { title: 'Title Text', key: 'item1' }
-                    ]}
-                    renderItem={this._renderEachOrderListItem}
-                />
-                <Portal>
-                    <Modal visible={this.state.visible} onDismiss={this._hideModal}>
-                        <OrderDetailsModal />
-                    </Modal>
-                </Portal>
+                    {this._renderLoadingOrFlatListIfHistoryExists()}
 
-                <FAB
-                    style={styles.fab}
-                    icon="add"
-                    onPress={() => this.props.navigation.navigate('Order')}
-                />
-            </View>
+                    {/*  <Portal>
+                        <Modal visible={this.state.visible} onDismiss={this._hideModal}>
+                            <OrderDetailsModal itemInfo={itemInfo}/>
+                        </Modal>
+                    </Portal> */}
+
+                   
+
+                    {this._renderAddFAB()}
+                    {this._renderReloadFAB()}
+
+                    
+                </View>
             </ExitOnBackButton>
         );
     }
@@ -88,7 +217,11 @@ const styles = StyleSheet.create({
         right: 0,
         bottom: 0,
     },
-    textInput: {
-        margin: 5,
+    reloadFAB: {
+        position: 'absolute',
+        marginRight: 16,
+        marginBottom: 88,
+        right: 0,
+        bottom: 0,
     },
 });

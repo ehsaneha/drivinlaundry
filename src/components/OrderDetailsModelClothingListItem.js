@@ -12,13 +12,13 @@ import { Avatar, Badge } from 'react-native-paper';
 
 class OrderDetailsModelClothingListItem extends Component {
     render() {
-        const { iconName, count } = this.props;
+        const { type, count } = this.props;
 
         return (
             <View style={{ marginRight: 5, }} >
                 <Avatar.Icon
                     icon={({ size, color }) => (
-                        <ClothingIcon name={iconName} size={40} color='white' />
+                        <ClothingIcon name={`Asset-1${type + 21}mdpi`} size={40} color='white' />
                     )}
                 />
                 <Badge style={{ position: 'absolute', bottom: 0 }}>{count}</Badge>

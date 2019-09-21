@@ -4,9 +4,11 @@ import {
     Text,
     StyleSheet,
     Image,
+    ToastAndroid,
     FlatList
 } from "react-native";
-import { ActivityIndicator, DefaultTheme } from 'react-native-paper';
+import { ActivityIndicator, DefaultTheme, FAB, } from 'react-native-paper';
+import Icon from 'react-native-vector-icons/dist/MaterialCommunityIcons';
 
 import ClientsListItem from '../components/ClientsListItem'
 import NetworkUtil from '../network/NetworkUtil'
@@ -19,43 +21,72 @@ class LaundrySelectionScreen extends Component {
 
         this.state = {
             laundriesList: [],
+            reloadFABVisible: false,
+            loading: true,
         };
 
-        this.selectedDriver = { id: '', name: '', phone: '', avatar: '' };
+        this.selectedLaundry = { id: '', name: '', phone: '', avatar: '', cost: '' };
         this.itemsDeActivateFuncs = {};
 
         this.beforeNextFABPressed = this.beforeNextFABPressed.bind(this);
         this.onItemPressed = this.onItemPressed.bind(this);
     }
 
-
-    componentDidMount = () => {
-        this.props.screenProps(this);
-
+    _reloadLaundries = () => {
         const { latitude, longitude } = DatabaseUtil.data.order.location;
         NetworkUtil.getLaundries(latitude, longitude)
             .then((response) => {
                 this.setState({
                     laundriesList: response,
+                    reloadFABVisible: response.length > 0,
+                    loading: false,
                 });
 
-                this.selectedDriver = response[0];
+                this.selectedLaundry = response[0];
             })
+            .catch((error) => {
+                ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
+                this.setState({
+                    loading: false,
+                    reloadFABVisible: true,
+                });
+            });
+    }
+
+    componentDidMount = () => {
+        this.props.screenProps(this);
+        this._reloadLaundries();
     }
 
     beforeNextFABPressed = () => {
-        if(this.state.laundriesList.length == 0) return false;
+        if(this.state.laundriesList.length == 0) {
+            ToastAndroid.show('You should choose at least one laundry!', ToastAndroid.LONG);
+            return false;
+        }
 
-        DatabaseUtil.data.order.laundry = this.selectedDriver;
+        DatabaseUtil.data.order.laundry = this.selectedLaundry;
+
+        const {cost} = this.selectedLaundry;
+        DatabaseUtil.data.order.laundry.cost = cost == '' ? '5' : cost;
+
         return true;
     }
 
-    onItemPressed = (id, name, phone, avatar) => {
-        if (this.selectedDriver.id === id)
+    onItemPressed = (id, name, phone, avatar, cost) => {
+        if (this.selectedLaundry.id === id)
             return;
 
-        this.itemsDeActivateFuncs[this.selectedDriver.id].deActivate();
-        this.selectedDriver = { id, name, phone, avatar };
+        this.itemsDeActivateFuncs[this.selectedLaundry.id].deActivate();
+        this.selectedLaundry = { id, name, phone, avatar, cost };
+    }
+
+    _reloadFABPressed = () => {
+        this.setState({
+            // laundriesList: [],
+            reloadFABVisible: false,
+            loading: true,
+        }, 
+        this._reloadLaundries);
     }
 
     _renderEachItem = ({ item }) => {
@@ -67,12 +98,13 @@ class LaundrySelectionScreen extends Component {
                 onRef={ref => this.itemsDeActivateFuncs[item.id] = ref}
                 onPressItem={this.onItemPressed}
                 active={item.id === this.state.laundriesList[0].id}
+                avatarSource={{ uri: NetworkUtil.getAvatarUri(item.avatar), cache: 'reload' }}
             />
         );
     }
 
     _renderFlatListOrActivityIndicator = () => {
-        return this.state.laundriesList.length === 0 ?
+        return this.state.loading ?
             (
                 <View style={{ position: "absolute", marginTop: 90, left: 0, right: 0, alignItems: "center" }}>
                     <ActivityIndicator
@@ -90,7 +122,22 @@ class LaundrySelectionScreen extends Component {
                     data={this.state.laundriesList}
                     renderItem={this._renderEachItem}
                 />
-            )
+            );
+    }
+
+    _renderReloadFAB = () => {
+        if (this.state.reloadFABVisible) {
+            return (
+                <FAB
+                    color={DefaultTheme.colors.primary}
+                    style={styles.reloadFAB}
+                    icon={({ size, color }) => (
+                        <Icon name={'reload'} size={size} color={color} />
+                    )}
+                    onPress={this._reloadFABPressed}
+                />
+            );
+        }
     }
 
     render() {
@@ -102,6 +149,9 @@ class LaundrySelectionScreen extends Component {
                 />
 
                 {this._renderFlatListOrActivityIndicator()}
+
+                {this._renderReloadFAB()}
+
 
             </View>
         );
@@ -119,5 +169,12 @@ const styles = StyleSheet.create({
       flex: 1,
       alignSelf: 'stretch',
       width: null,
-    }
+    },
+    reloadFAB: {
+        position: 'absolute',
+        bottom: 0,
+        margin: 16,
+        alignSelf: 'center',
+        backgroundColor: 'white',
+    },
 });

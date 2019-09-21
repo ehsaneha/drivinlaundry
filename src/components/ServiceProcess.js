@@ -5,9 +5,11 @@ import {
     StyleSheet,
     Linking,
     Dimensions,
+    ToastAndroid,
 } from "react-native";
-import { Card, Title, Paragraph } from 'react-native-paper';
+import { Card, Title, Paragraph, FAB, DefaultTheme } from 'react-native-paper';
 import moment from "moment";
+import Icon from 'react-native-vector-icons/dist/MaterialCommunityIcons';
 
 import ServiceProcessCall from './ServiceProcessCall'
 import ServiceProcessItem from './ServiceProcessItem'
@@ -28,8 +30,10 @@ class ServiceProcess extends Component {
                 { id: 2, buttonVisible: userType == 3, time: '', title: 'Driver took your clothes', name: 'car_laundry_gone_time', loading: false, },
                 { id: 3, buttonVisible: userType == 1, time: '', title: 'Service is done', name: 'done_time', loading: false, },
             ],
+            reloadFABVisible: false,
         };
         this.screenWidth = Math.round(Dimensions.get('window').width);
+        this.timeOut = null;
 
 
         this._renderServiceProcessItems = this._renderServiceProcessItems.bind(this);
@@ -50,9 +54,13 @@ class ServiceProcess extends Component {
                     this._convertOrderToServiceProcess();
                 }
 
-                if(!this._isServiceDone()) {
-                    setTimeout(this._getOrder, 15000);
-                }
+                this.timeOut = setTimeout(this._getOrder, 15000);
+            })
+            .catch((error) => {
+                ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
+                this.setState({
+                    reloadFABVisible: true,
+                });
             });
     }
 
@@ -63,6 +71,9 @@ class ServiceProcess extends Component {
                 if (DatabaseUtil.orderHasChanged()) {
                     this._convertOrderToServiceProcess();
                 }
+            })
+            .catch((error) => {
+                ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
             });
     }
 
@@ -98,9 +109,12 @@ class ServiceProcess extends Component {
                 serviceProcessesList,
             };
         }, () => {
-            if(this._isServiceDone()) {
+            if (this._isServiceDone()) {
+                clearTimeout(this.timeOut);
                 this.props.onDone();
             }
+            
+            DatabaseUtil.storeOrder();
         });
     }
 
@@ -123,6 +137,28 @@ class ServiceProcess extends Component {
         this._updateOrder();
     }
 
+    _reloadFABPressed = () => {
+        this.setState({
+            reloadFABVisible: false,
+        }, 
+        this._getOrder);
+    }
+
+    _renderReloadFAB = () => {
+        if (this.state.reloadFABVisible) {
+            return (
+                <FAB
+                    color={DefaultTheme.colors.primary}
+                    style={styles.reloadFAB}
+                    icon={({ size, color }) => (
+                        <Icon name={'reload'} size={size} color={color} />
+                    )}
+                    onPress={this._reloadFABPressed}
+                />
+            );
+        }
+    }
+
     _renderServiceProcessItems = () => {
         return this.state.serviceProcessesList.map(eachServiceProcessItem => (
             <ServiceProcessItem
@@ -131,7 +167,7 @@ class ServiceProcess extends Component {
                 title={eachServiceProcessItem.title}
                 turn={eachServiceProcessItem.id <= this.state.turnId}
                 doneIconVisible={eachServiceProcessItem.id < this.state.turnId}
-                buttonVisible={eachServiceProcessItem.buttonVisible && (eachServiceProcessItem.id > this.state.turnId)}
+                buttonVisible={eachServiceProcessItem.buttonVisible && (eachServiceProcessItem.id >= this.state.turnId)}
                 // loading={eachServiceProcessItem.loading}
                 onPress={this._doneButtonPressed}
             />
@@ -152,7 +188,7 @@ class ServiceProcess extends Component {
             { type: laundry, iconName: 'local-laundry-service' },
         ];
         users.splice(userType - 1, 1);
-        
+
         return (
             <View style={{ flexDirection: 'row', marginLeft: 'auto' }}>
                 <ServiceProcessCall
@@ -181,24 +217,39 @@ class ServiceProcess extends Component {
             cost,
         } = DatabaseUtil.data.order;
 
-        return (
-            <Card onPress={this._onPress} style={{position: 'absolute', top: 80, left: 20, width: this.screenWidth - 40}}>
-                <Card.Content>
+        const leftValue = 10;
 
-                    <View style={{ flexDirection: 'row', marginBottom: 10 }}>
-                        <View>
-                            <Title>Service Process</Title>
-                            <Paragraph>{start_time}</Paragraph>
+        return (
+            <View style={styles.container}>
+                <Card
+                    onPress={this._onPress}
+                    style={{
+                        position: 'absolute',
+                        top: leftValue,
+                        left: leftValue,
+                        width: this.screenWidth - (2 * leftValue),
+                    }}
+                >
+                    <Card.Content>
+
+                        <View style={{ flexDirection: 'row', marginBottom: 10 }}>
+                            <View>
+                                <Title>Service Process</Title>
+                                <Paragraph>{start_time}</Paragraph>
+                            </View>
+
+                            {this._renderServiceCalls()}
                         </View>
 
-                        {this._renderServiceCalls()}
-                    </View>
+                        <View style={styles.processLine} />
 
-                    <View style={styles.processLine} />
+                        {this._renderServiceProcessItems()}
+                    </Card.Content>
+                </Card>
+                
+                {this._renderReloadFAB()}
 
-                    {this._renderServiceProcessItems()}
-                </Card.Content>
-            </Card>
+            </View>
         );
     }
 }
@@ -207,8 +258,8 @@ export default ServiceProcess;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center'
+        // alignItems: 'center',
+        // justifyContent: 'center'
     },
     processLine: {
         position: 'absolute',
@@ -217,5 +268,12 @@ const styles = StyleSheet.create({
         backgroundColor: 'black',
         left: 34,
         top: 115
-    }
+    },
+    reloadFAB: {
+        position: 'absolute',
+        bottom: 0,
+        margin: 16,
+        alignSelf: 'center',
+        backgroundColor: 'white',
+    },
 });

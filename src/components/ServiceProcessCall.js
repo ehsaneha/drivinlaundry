@@ -8,6 +8,8 @@ import {
 import { Avatar } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/dist/MaterialIcons';
 
+import NetworkUtil from '../network/NetworkUtil'
+
 class ServiceProcessCall extends Component {
 
     _onPress = () => {
@@ -16,14 +18,22 @@ class ServiceProcessCall extends Component {
     }
 
     render() {
+        const { style, iconName, avatar } = this.props;
+        const avatarSource = {uri: NetworkUtil.getAvatarUri(avatar)};
+
         return (
-            <View style={[{}, this.props.style]} >
+            <View style={[{}, style]} >
 
                 <TouchableOpacity onPress={this._onPress} >
-                    <Avatar.Icon
+                    {/* <Avatar.Icon
                         icon={({ size, color }) => (
                             <Icon name={'local-taxi'} size={40} color='white' />
                         )}
+                    /> */}
+                    
+                    <Avatar.Image
+                        source={avatarSource}
+                        key={avatarSource.uri}
                     />
                 </TouchableOpacity>
                 
@@ -31,7 +41,7 @@ class ServiceProcessCall extends Component {
                     style={{ position: 'absolute', left: -5, top: -5, borderWidth: 1, borderColor: 'white' }}
                     size={25}
                     icon={({ size, color }) => (
-                        <Icon name={this.props.iconName} size={15} color='white' />
+                        <Icon name={iconName} size={15} color='white' />
                     )}
                 />
 

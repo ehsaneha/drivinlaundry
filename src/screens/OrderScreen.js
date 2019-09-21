@@ -8,13 +8,13 @@ import {
     Easing,
     TouchableOpacity
 } from 'react-native';
-import { Button, FAB, Avatar } from 'react-native-paper';
+import { Button, FAB, Avatar, DefaultTheme } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/dist/MaterialIcons';
 import { NavigationActions, StackActions } from 'react-navigation'
 
 import OrderSubViewNavigator from '../navigators/OrderSubViewNavigator'
 import OrderPageIndicator from '../components/OrderPageIndicator'
-
+import DatabaseUtil from '../database/DatabaseUtil'
 
 class OrderScreen extends Component {
     state = {
@@ -25,12 +25,12 @@ class OrderScreen extends Component {
 
 
     screens = [
-        { name: 'ClothingSelection', iconName: 'folder', ref: null },
+        { name: 'ClothingSelection', iconName: 'tshirt', ref: null },
         { name: 'TimeSelection', iconName: 'access-time', ref: null },
         { name: 'LocationSelection', iconName: 'location-on', ref: null },
         { name: 'CarSelection', iconName: 'local-taxi', ref: null },
         { name: 'LaundrySelection', iconName: 'local-laundry-service', ref: null },
-        { name: 'OrderReciepe', iconName: 'folder', ref: null },
+        { name: 'OrderReciepe', iconName: 'shopping-cart', ref: null },
         { name: 'Payment', iconName: 'attach-money', ref: null },
     ];
 
@@ -67,15 +67,19 @@ class OrderScreen extends Component {
                 if (this.state.currentScreenIndex > -1) {
                     this.activePrevIndex();
                 }
+                else {
+                    DatabaseUtil.clearOrder();
+                }
 
                 this.props.navigation.goBack(null)
             });
     }
 
     _renderNextFAB = () => {
-        if (this.state.currentScreenIndex < this.screens.length) {
+        if (this.state.currentScreenIndex < this.screens.length-1) {
             return (
                 <FAB
+                    color={DefaultTheme.colors.primary}
                     style={styles.nextFAB}
                     icon="check"
                     onPress={this._nextFABPressed}
@@ -85,17 +89,25 @@ class OrderScreen extends Component {
     }
 
     _renderBackFAB = () => {
-        if (this.state.currentScreenIndex > 0) {
-            return (
+        return this.state.currentScreenIndex > 0 ? 
+             (
                 <FAB
+                    color={DefaultTheme.colors.primary}
                     style={styles.backFAB}
                     icon="arrow-back"
                     onPress={this._backFABPressed}
                 />
+            ) :
+            (
+                <FAB
+                    color={DefaultTheme.colors.primary}
+                    style={styles.backFAB}
+                    icon="close"
+                    onPress={this._backFABPressed}
+                />
             );
-        }
     }
-
+/* 
     _renderSettingButton = () => {
         if (this.state.currentScreenIndex === 0) {
             return (
@@ -109,7 +121,7 @@ class OrderScreen extends Component {
                 </TouchableOpacity>
             );
         }
-    }
+    } */
 
     render() {
         return (
@@ -119,7 +131,7 @@ class OrderScreen extends Component {
                     screenProps={ref => this.beforeNextFABPressed = ref.beforeNextFABPressed}
                 />
 
-                {this._renderSettingButton()}
+                {/* {this._renderSettingButton()} */}
 
                 <OrderPageIndicator
                     screensList={this.screens}
@@ -157,11 +169,13 @@ const styles = StyleSheet.create({
         margin: 16,
         right: 0,
         bottom: 0,
+        backgroundColor: 'white',
     },
     backFAB: {
         position: 'absolute',
         margin: 16,
         bottom: 0,
+        backgroundColor: 'white',
     },
     textInput: {
         margin: 5,

@@ -16,6 +16,7 @@ export * from './HomeScreen'
 export * from './HomeDriverScreen'
 export * from './OrderScreen'
 export * from './SettingsScreen'
+export * from './RatingScreen'
 
 
 
