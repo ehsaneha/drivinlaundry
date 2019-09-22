@@ -74,8 +74,8 @@ class OrderPageIndicator extends Component {
                 {this.props.screensList.map((each, index) => {
                     return (
                         <EachPageIndicator 
-                            key={index}
-                            onRef={ref => (each.ref = ref)} 
+                            key={index + '_EachPageIndicator'}
+                            onRef={ref => each.ref = ref} 
                             iconName={each.iconName} 
                             style={{
                                 marginLeft: index === 0 ? 0 : 10

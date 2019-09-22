@@ -10,9 +10,10 @@ import {
 } from "react-native";
 import { Modal, Portal, Appbar, FAB, ActivityIndicator, DefaultTheme } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/dist/MaterialCommunityIcons';
+import { withNavigationFocus } from 'react-navigation';
 
 import OrderListItem from '../components/OrderListItem'
-import ExitOnBackButton from '../components/ExitOnBackButton'
+import HandleBackButton from '../components/HandleBackButton'
 import DatabaseUtil from "../database/DatabaseUtil";
 import NetworkUtil from "../network/NetworkUtil";
 
@@ -42,8 +43,8 @@ class HomeScreen extends Component {
                 this.setState({
                     history: DatabaseUtil.data.history,
                     loading: false,
-                    reloadFABVisible: response.length > 0,
-                    addFABVisible: response.length > 0,
+                    reloadFABVisible: true,
+                    addFABVisible: true,
                 });
             })
             .catch((error) => {
@@ -62,6 +63,8 @@ class HomeScreen extends Component {
         else {
             this.setState({
                 loading: false,
+                reloadFABVisible: true,
+                addFABVisible: true,
             });
         }
 
@@ -87,6 +90,16 @@ class HomeScreen extends Component {
         );
     }
 
+    _renderIfFlatlistIsEmpty = () => {
+        return (
+            <View style={styles.container}>
+                <Text>
+                    You have no history yet!
+                </Text>
+            </View>
+        );
+    }
+
     _renderLoadingOrFlatListIfHistoryExists = () => {
         const { loading, history } = this.state;
         if (loading) {
@@ -100,21 +113,16 @@ class HomeScreen extends Component {
                 />
             );
         }
-        else {
-            return history ?
-                (
-                    <FlatList
-                        data={history}
-                        renderItem={this._renderEachOrderListItem}
-                    />
-                ) :
-                (
-                    <Text>
-                        You have no history yet!
-                    </Text>
-                );
 
-        }
+        return (
+            <FlatList
+                data={history}
+                renderItem={this._renderEachOrderListItem}
+                ListEmptyComponent={this._renderIfFlatlistIsEmpty}
+                keyExtractor={(item, index) => index + '_history'}
+            />
+        );
+
     }
 
     _reloadFABPressed = () => {
@@ -124,7 +132,7 @@ class HomeScreen extends Component {
             reloadFABVisible: false,
             addFABVisible: false,
         },
-        this._reloadHistory);
+            this._reloadHistory);
     }
 
     _renderAddFAB = () => {
@@ -132,7 +140,7 @@ class HomeScreen extends Component {
             return (
                 <FAB
                     color={'white'}
-                    style={[styles.fab, {backgroundColor: DefaultTheme.colors.primary}]}
+                    style={[styles.fab, { backgroundColor: DefaultTheme.colors.primary }]}
                     icon="add"
                     onPress={() => this.props.navigation.navigate('Order')}
                 />
@@ -145,7 +153,7 @@ class HomeScreen extends Component {
             return (
                 <FAB
                     color={'white'}
-                    style={[styles.reloadFAB, {backgroundColor: DefaultTheme.colors.primary}]}
+                    style={[styles.reloadFAB, { backgroundColor: DefaultTheme.colors.primary }]}
                     icon={({ size, color }) => (
                         <Icon name={'reload'} size={size} color={color} />
                     )}
@@ -157,7 +165,7 @@ class HomeScreen extends Component {
 
     render() {
         return (
-            <ExitOnBackButton>
+            <HandleBackButton>
                 <View style={{ flex: 1 }}>
                     <Appbar.Header>
                         <View style={{ flexDirection: 'row', height: 40, marginLeft: 10 }}>
@@ -186,14 +194,14 @@ class HomeScreen extends Component {
                         </Modal>
                     </Portal> */}
 
-                   
+
 
                     {this._renderAddFAB()}
                     {this._renderReloadFAB()}
 
-                    
+
                 </View>
-            </ExitOnBackButton>
+            </HandleBackButton>
         );
     }
 };
@@ -206,21 +214,22 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        paddingTop: 100,
     },
     card: {
         margin: 5,
     },
     fab: {
         position: 'absolute',
-        margin: 16,
+        marginRight: 16,
+        marginBottom: 88,
         right: 0,
         bottom: 0,
     },
     reloadFAB: {
         position: 'absolute',
-        marginRight: 16,
-        marginBottom: 88,
+        margin: 16,
         right: 0,
         bottom: 0,
     },

@@ -1,8 +1,8 @@
 import React, { Component } from "react";
-import { BackHandler, } from "react-native";
+import { BackHandler, Alert, } from "react-native";
 import { withNavigation } from "react-navigation";
 
-class ExitOnBackButton extends Component {
+class HandleBackButton extends Component {
     _didFocusSubscription;
     _willBlurSubscription;
 
@@ -19,8 +19,37 @@ class ExitOnBackButton extends Component {
         );
     }
 
+    _exitProcess = () => {
+        Alert.alert(
+            'Exit Alert',
+            'Do you want to exit the app?',
+            [
+                {
+                    text: 'No',
+                    onPress: () => false,
+                    style: 'cancel',
+                },
+                {
+                    text: 'Yes',
+                    onPress: () => {
+                        BackHandler.exitApp();
+                    }
+                },
+            ],
+            { cancelable: false },
+        );
+    }
+
     onBackButtonPressAndroid = () => {
-        BackHandler.exitApp();
+        const {onPress} = this.props;
+
+        if(onPress) {
+            onPress();
+        }
+        else {
+            this._exitProcess();
+        }
+
         return true;
     };
 
@@ -32,4 +61,4 @@ class ExitOnBackButton extends Component {
     render = () => this.props.children;
 }
 
-export default withNavigation(ExitOnBackButton);
+export default withNavigation(HandleBackButton);

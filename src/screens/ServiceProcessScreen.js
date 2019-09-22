@@ -9,6 +9,7 @@ import { Appbar, FAB, ActivityIndicator, DefaultTheme, Title } from 'react-nativ
 
 import DatabaseUtil from '../database/DatabaseUtil'
 import ServiceProcess from '../components/ServiceProcess'
+import HandleBackButton from '../components/HandleBackButton'
 
 class ServiceProcessScreen extends Component {
 
@@ -18,22 +19,24 @@ class ServiceProcessScreen extends Component {
 
     render() {
         return (
-            <View style={{ flex: 1 }}>
-                <Appbar.Header>
+            <HandleBackButton>
+                <View style={{ flex: 1 }}>
+
+                    <Appbar.Header>
                         {/* <View style={{ flexDirection: 'row', height: 40, marginLeft: 10 }}>
-                            <Image
-                                style={{ height: 40, width: 40 }}
-                                source={require('../assets/imgs/logo.png')}
-                            />
-                            <View style={{ marginLeft: 10 }}>
-                                <Text style={{ color: 'white' }}>
-                                    Drivin'
-                                </Text>
-                                <Text style={{ marginTop: -5, color: 'white' }}>
-                                    Laundry
+                        <Image
+                            style={{ height: 40, width: 40 }}
+                            source={require('../assets/imgs/logo.png')}
+                        />
+                        <View style={{ marginLeft: 10 }}>
+                            <Text style={{ color: 'white' }}>
+                                Drivin'
                             </Text>
-                            </View>
-                        </View> */}
+                            <Text style={{ marginTop: -5, color: 'white' }}>
+                                Laundry
+                        </Text>
+                        </View>
+                    </View> */}
                         <Appbar.Content
                             titleStyle={{ textAlign: 'center' }}//, paddingRight: 15
                             title="Service Process"
@@ -45,8 +48,14 @@ class ServiceProcessScreen extends Component {
                         info={DatabaseUtil.data.order}
                         onDone={this._onServiceProcessDone}
                     />
+{/* 
+                    <Image
+                        style={styles.backgroundImage}
+                        source={require('../assets/map.png')}
+                    /> */}
+                </View>
+            </HandleBackButton>
 
-            </View>
         );
     }
 }
@@ -58,5 +67,11 @@ const styles = StyleSheet.create({
         padding: 5
         // alignItems: 'center',
         // justifyContent: 'center'
-    }
+    },
+    backgroundImage: {
+        flex: 1,
+        alignSelf: 'stretch',
+        width: null,
+        zIndex: 200,
+    },
 });

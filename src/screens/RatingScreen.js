@@ -9,7 +9,7 @@ import {
 import { Appbar, Avatar, Button, Card, Title, Paragraph, FAB, DefaultTheme } from 'react-native-paper';
 import { AirbnbRating } from 'react-native-ratings';
 
-import ExitOnBackButton from '../components/ExitOnBackButton'
+import HandleBackButton from '../components/HandleBackButton'
 import NetworkUtil from '../network/NetworkUtil'
 import DatabaseUtil from '../database/DatabaseUtil'
 
@@ -58,6 +58,7 @@ class RatingScreen extends Component {
         const laundryAvatarSource = {uri: NetworkUtil.getAvatarUri(laundry.avatar)};
 
         return (
+            <HandleBackButton>
             <View style={{flex: 1}}>
                 <Appbar.Header>
                         <Appbar.Content
@@ -111,6 +112,7 @@ class RatingScreen extends Component {
                 />
             </View>
             </View>
+            </HandleBackButton>
         );
     }
 };

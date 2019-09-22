@@ -2,8 +2,8 @@
 
 class NetworkUtil {
 
-    static serverUrl = 'http://10.0.3.2:800/';
-    // static serverUrl = 'http://ehsaneha.ir/';
+    // static serverUrl = 'http://10.0.3.2:800/';
+    static serverUrl = 'http://ehsaneha.ir/';
     static apiUrl = 'api/';
     static avatarUrl = 'storage/avatars/';
 
@@ -89,7 +89,7 @@ class NetworkUtil {
         return NetworkUtil.serverUrl + NetworkUtil.avatarUrl + avatar;
     }
 
-    static createUser = ({ nameText, phoneText, passwordText, userType }) => {
+    static createUser = ({ nameText, phoneText, passwordText, userType, cost }) => {
         return NetworkUtil.postPut(
             'POST',
             NetworkUtil.apiUrl + 'createUser',
@@ -98,6 +98,7 @@ class NetworkUtil {
                 name: nameText,
                 password: passwordText,
                 userType,
+                cost,
             }
         );
     }

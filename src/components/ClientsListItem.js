@@ -37,11 +37,24 @@ class ClientsListItem extends Component {
         });
     }
 
+    _renderAvatar = (avatar, avatarSource, iconName) => {
+        return avatar == 'avatar.jpg' || avatar == 'avatar.jpeg' ?
+        (
+            <Avatar.Icon icon={iconName} />
+        ) :
+        (
+            <Avatar.Image
+                source={avatarSource}
+                key={avatarSource.uri}
+            />
+        );
+    }
+
     render() {
         const activeTheme = { textColor: 'white', backgroundColor: DefaultTheme.colors.primary };
         const deActiveTheme = { textColor: 'black', backgroundColor: 'white' };
 
-        const {itemInfo, iconName, avatarSource} = this.props;
+        const {itemInfo, iconName, avatarSource, avatar} = this.props;
         const {card, container} = styles;
         const { active } = this.state;
 
@@ -54,12 +67,8 @@ class ClientsListItem extends Component {
                 onPress={this._onPress}
             >
                 <Card.Content style={container}>
-                    {/* <Avatar.Icon icon={iconName} /> */}
-                    <Avatar.Image
-                        // size={160}
-                        source={avatarSource}
-                        key={avatarSource.uri}
-                    />
+
+                    {this._renderAvatar(avatar, avatarSource, iconName)}
 
                         <Title
                             style={{

@@ -13,7 +13,7 @@ import { NavigationEvents } from 'react-navigation';
 
 import NetworkUtil from '../network/NetworkUtil'
 import DatabaseUtil from '../database/DatabaseUtil'
-import ExitOnBackButton from '../components/ExitOnBackButton'
+import HandleBackButton from '../components/HandleBackButton'
 // import { TouchableOpacity } from "react-native-gesture-handler";
 
 class SignInScreen extends Component {
@@ -27,7 +27,7 @@ class SignInScreen extends Component {
     state = this.initState;
 
     _signUpPressed = () => {
-        this.props.navigation.navigate('SignUp')
+        this.props.navigation.navigate('SignUp');
     }
 
     _signInPressed = () => {
@@ -53,13 +53,17 @@ class SignInScreen extends Component {
                     }
                     else {
                         ToastAndroid.show('Your Phone or Password was not correct!', ToastAndroid.SHORT);
-
-                        this.setState((prevState) => {
-                            state = { ...prevState };
-                            state.loading = false;
-                            return state;
+                        this.setState({
+                            loading: false,
                         });
                     }
+                })
+                .catch((error) => {
+                    console.log(error);
+                    ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
+                    this.setState({
+                        loading: false,
+                    });
                 });
         });
     }
@@ -88,7 +92,7 @@ class SignInScreen extends Component {
     render() {
         const { phoneText, passwordText } = this.state;
         return (
-            <ExitOnBackButton>
+            <HandleBackButton>
                 <NavigationEvents onWillFocus={() => this.setState(this.initState)} />
                 <View style={styles.container}>
 
@@ -132,7 +136,7 @@ class SignInScreen extends Component {
                     </View>
 
                 </View>
-            </ExitOnBackButton>
+            </HandleBackButton>
         );
     }
 }

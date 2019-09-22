@@ -93,13 +93,13 @@ class CarSelectionScreen extends Component {
     _renderEachItem = ({ item }) => {
         return (
             <ClientsListItem
-                key={'DriverListItem_' + item.id}
                 itemInfo={item}
                 iconName={'local-taxi'}
                 onRef={ref => this.itemsDeActivateFuncs[item.id] = ref}
                 onPressItem={this.onItemPressed}
                 active={item.id === this.state.driversList[0].id}
                 avatarSource={{ uri: NetworkUtil.getAvatarUri(item.avatar), cache: 'reload' }}
+                avatar={item.avatar}
             />
         );
     }
@@ -122,6 +122,7 @@ class CarSelectionScreen extends Component {
                     showsHorizontalScrollIndicator={false}
                     data={this.state.driversList}
                     renderItem={this._renderEachItem}
+                    keyExtractor={(item, index) => index + '_drivers'}
                 />
             );
     }

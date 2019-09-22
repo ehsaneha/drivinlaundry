@@ -87,7 +87,7 @@ class ClothingSelectionScreen extends Component {
                 data={this._generateListItemsData()}
                 renderItem={this._renderEachListItem}
                 numColumns={5}
-                keyExtractor={(item, index) => index.toString()}
+                keyExtractor={(item, index) => index + '_clothings'}
             />
         );
     }

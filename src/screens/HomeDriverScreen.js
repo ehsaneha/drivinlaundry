@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { Modal, Portal, Appbar, Avatar, Button, Card, Title, Paragraph, FAB, DefaultTheme } from 'react-native-paper';
 
-import ExitOnBackButton from '../components/ExitOnBackButton'
+import HandleBackButton from '../components/HandleBackButton'
 import NetworkUtil from '../network/NetworkUtil'
 import DatabaseUtil from '../database/DatabaseUtil'
 import ServiceProcess from '../components/ServiceProcess'
@@ -99,7 +99,7 @@ class HomeDriverScreen extends Component {
 
     render() {
         return (
-            <ExitOnBackButton>
+            <HandleBackButton>
                 <View style={{ flex: 1 }}>
                     <Appbar.Header>
                         <Appbar.Content />
@@ -116,7 +116,7 @@ class HomeDriverScreen extends Component {
                     {this._renderFABIFNeeded()}
                     
                 </View>
-            </ExitOnBackButton>
+            </HandleBackButton>
         );
     }
 };

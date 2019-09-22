@@ -63,20 +63,15 @@ class SettingsScreen extends Component {
 
     _callCamera = () => {
 
-        // More info on all the options is below in the API Reference... just some common use cases shown here
         const options = {
             title: 'Select Avatar',
-            customButtons: [{ name: 'fb', title: 'Choose Photo from Facebook' }],
+            // customButtons: [{ name: 'fb', title: 'Choose Photo from Facebook' }],
             storageOptions: {
                 skipBackup: true,
                 path: 'images',
             },
         };
 
-        /**
-         * The first arg is the options object for customization (it can also be null or omitted for default options),
-         * The second arg is the callback which sends object: response (more info in the API Reference)
-         */
         ImagePicker.showImagePicker(options, (response) => {
             console.log('Response = ', response);
 
@@ -102,6 +97,9 @@ class SettingsScreen extends Component {
                             return state;
                         });
                         DatabaseUtil.storeSetting();
+                    })
+                    .catch((error) => {
+                        ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
                     });
             }
         });
@@ -147,6 +145,22 @@ class SettingsScreen extends Component {
         }
     }
 
+    _renderAvatar = () => {
+        const {avatar} = DatabaseUtil.data.setting;
+
+        return avatar == 'avatar.jpg' || avatar == 'avatar.jpeg' ?
+        (
+            <Avatar.Icon size={160} icon={'person'} />
+        ) :
+        (
+            <Avatar.Image
+                size={160}
+                source={this.state.avatarSource}
+                key={this.state.avatarSource.uri}
+            />
+        );
+    }
+
     render() {
         const { phoneText, nameText, passwordText } = this.state;
         return (
@@ -166,11 +180,7 @@ class SettingsScreen extends Component {
                 <View style={styles.selectImageSection}>
                     <View>
                         <TouchableOpacity onPress={this._callCamera}>
-                            <Avatar.Image
-                                size={160}
-                                source={this.state.avatarSource}
-                                key={this.state.avatarSource.uri}
-                            />
+                            {this._renderAvatar()}
                         </TouchableOpacity>
 
                         <Avatar.Icon

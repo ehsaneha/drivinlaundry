@@ -92,7 +92,6 @@ class LaundrySelectionScreen extends Component {
     _renderEachItem = ({ item }) => {
         return (
             <ClientsListItem
-                key={'LaundryListItem_' + item.id}
                 itemInfo={item}
                 iconName={'local-taxi'}
                 onRef={ref => this.itemsDeActivateFuncs[item.id] = ref}
@@ -121,6 +120,7 @@ class LaundrySelectionScreen extends Component {
                     showsHorizontalScrollIndicator={false}
                     data={this.state.laundriesList}
                     renderItem={this._renderEachItem}
+                    keyExtractor={(item, index) => index + '_laundries'}
                 />
             );
     }

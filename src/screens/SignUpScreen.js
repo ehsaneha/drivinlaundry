@@ -6,6 +6,7 @@ import {
     BackHandler,
     TouchableOpacity,
     Keyboard,
+    ToastAndroid,
 
 } from "react-native";
 import { Button, TextInput, DefaultTheme, ActivityIndicator } from 'react-native-paper';
@@ -13,7 +14,7 @@ import { NavigationEvents } from 'react-navigation';
 
 import NetworkUtil from '../network/NetworkUtil'
 import DatabaseUtil from '../database/DatabaseUtil'
-import ExitOnBackButton from '../components/ExitOnBackButton'
+import HandleBackButton from '../components/HandleBackButton'
 import UserTypeSelection from '../components/UserTypeSelection'
 // import { TouchableOpacity } from "react-native-gesture-handler";
 
@@ -23,6 +24,7 @@ class SignUpScreen extends Component {
         phoneText: '',
         passwordText: '',
         confirmPasswordText: '',
+        cost: '',
         userType: '',
         loading: false,
     };
@@ -37,28 +39,64 @@ class SignUpScreen extends Component {
         });
     }
 
-    _signUpPressed = () => {
-        Keyboard.dismiss();
-        this.setState((prevState) => {
-            state = { ...prevState };
-            state.loading = true;
-            return state;
-        }, () => {
-            NetworkUtil.createUser(this.state)
-                .then((response) => {
-                    console.log(response);
+    _createUser = () => {
+        NetworkUtil.createUser(this.state)
+            .then((response) => {
+                console.log(response);
+                if (response.id > -1) {
                     DatabaseUtil.setSettingFromResponse(response);
 
-                    
                     DatabaseUtil.storeSetting()
                         .then(() => {
                             const { userType } = DatabaseUtil.data.setting;
                             this.props.navigation.navigate(userType === 1 ? 'Home' : 'HomeDriver')
                         });
 
-                    
+                }
+                else {
+                    ToastAndroid.show('This Phone number is already registered!', ToastAndroid.LONG);
+                    this.setState({
+                        loading: false,
+                    });
+                }
+
+            })
+            .catch((error) => {
+                ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
+                this.setState({
+                    loading: false,
                 });
-        });
+            });
+    }
+
+    _validate = () => {
+        const { passwordText, confirmPasswordText, } = this.state;
+
+        if(passwordText !== confirmPasswordText) {
+            ToastAndroid.show('password and confirm password is not the same!', ToastAndroid.LONG);
+            return false;
+        }
+
+
+        return true;
+    }
+
+    _signUpPressed = () => {
+        Keyboard.dismiss();
+
+        if (this._validate()) {
+
+            this.setState((prevState) => {
+                state = { ...prevState };
+                state.loading = true;
+
+                state.cost = state.userType === 1 ? '0' : state.userType === 2 ? '1' : '2';
+
+                return state;
+            },
+            this._createUser);
+
+        }
     }
 
     _signInPressed = () => {
@@ -66,8 +104,8 @@ class SignUpScreen extends Component {
     }
 
     _renderButtonOrActivityIndicator = () => {
-        return this.state.loading ? 
-             (
+        return this.state.loading ?
+            (
                 <ActivityIndicator
                     animating={true}
                     color={DefaultTheme.colors.primary}
@@ -82,14 +120,14 @@ class SignUpScreen extends Component {
                     onPress={this._signUpPressed}
                 >
                     Sign Up
-            </Button>
+                </Button>
             );
     }
 
     render() {
         const { phoneText, nameText, passwordText, confirmPasswordText } = this.state;
         return (
-            <ExitOnBackButton>
+            <HandleBackButton>
                 <NavigationEvents onWillFocus={() => this.setState(this.initState)} />
                 <View style={styles.container}>
 
@@ -156,7 +194,7 @@ class SignUpScreen extends Component {
                     </View>
 
                 </View>
-            </ExitOnBackButton>
+            </HandleBackButton>
         );
     }
 }

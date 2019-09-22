@@ -15,6 +15,7 @@ import { NavigationActions, StackActions } from 'react-navigation'
 import OrderSubViewNavigator from '../navigators/OrderSubViewNavigator'
 import OrderPageIndicator from '../components/OrderPageIndicator'
 import DatabaseUtil from '../database/DatabaseUtil'
+import HandleBackButton from '../components/HandleBackButton'
 
 class OrderScreen extends Component {
     state = {
@@ -76,7 +77,7 @@ class OrderScreen extends Component {
     }
 
     _renderNextFAB = () => {
-        if (this.state.currentScreenIndex < this.screens.length-1) {
+        if (this.state.currentScreenIndex < this.screens.length - 1) {
             return (
                 <FAB
                     color={DefaultTheme.colors.primary}
@@ -89,8 +90,8 @@ class OrderScreen extends Component {
     }
 
     _renderBackFAB = () => {
-        return this.state.currentScreenIndex > 0 ? 
-             (
+        return this.state.currentScreenIndex > 0 ?
+            (
                 <FAB
                     color={DefaultTheme.colors.primary}
                     style={styles.backFAB}
@@ -107,49 +108,52 @@ class OrderScreen extends Component {
                 />
             );
     }
-/* 
-    _renderSettingButton = () => {
-        if (this.state.currentScreenIndex === 0) {
-            return (
-                <TouchableOpacity onPress={() => this.props.navigation.navigate('Setting')} >
-                    <Avatar.Icon
-                        icon={({ size, color }) => (
-                            <Icon name={'settings'} size={30} />
-                        )}
-                        style={{ backgroundColor: 'transparent', position: 'absolute' }}
-                    />
-                </TouchableOpacity>
-            );
-        }
-    } */
+    /* 
+        _renderSettingButton = () => {
+            if (this.state.currentScreenIndex === 0) {
+                return (
+                    <TouchableOpacity onPress={() => this.props.navigation.navigate('Setting')} >
+                        <Avatar.Icon
+                            icon={({ size, color }) => (
+                                <Icon name={'settings'} size={30} />
+                            )}
+                            style={{ backgroundColor: 'transparent', position: 'absolute' }}
+                        />
+                    </TouchableOpacity>
+                );
+            }
+        } */
+
 
     render() {
         return (
-            <View style={{ flex: 1 }}>
-                <OrderSubViewNavigator
-                    navigation={this.props.navigation}
-                    screenProps={ref => this.beforeNextFABPressed = ref.beforeNextFABPressed}
-                />
+            <HandleBackButton onPress={this._backFABPressed}>
+                <View style={{ flex: 1 }}>
+                    <OrderSubViewNavigator
+                        navigation={this.props.navigation}
+                        screenProps={ref => this.beforeNextFABPressed = ref.beforeNextFABPressed}
+                    />
 
-                {/* {this._renderSettingButton()} */}
+                    {/* {this._renderSettingButton()} */}
 
-                <OrderPageIndicator
-                    screensList={this.screens}
-                    onRef={(ref) => {
-                        if (ref) {
-                            return [
-                                (this.activeNextIndex = ref.activeNextIndex),
-                                (this.activePrevIndex = ref.activePrevIndex),
-                            ];
-                        }
-                    }}
-                />
-                
+                    <OrderPageIndicator
+                        screensList={this.screens}
+                        onRef={(ref) => {
+                            if (ref) {
+                                return [
+                                    (this.activeNextIndex = ref.activeNextIndex),
+                                    (this.activePrevIndex = ref.activePrevIndex),
+                                ];
+                            }
+                        }}
+                    />
 
-                {this._renderNextFAB()}
-                {this._renderBackFAB()}
 
-            </View>
+                    {this._renderNextFAB()}
+                    {this._renderBackFAB()}
+
+                </View>
+            </HandleBackButton>
         );
     }
 }

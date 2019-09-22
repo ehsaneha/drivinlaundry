@@ -61,7 +61,7 @@ class OrderListItem extends Component {
                         // style={{ marginTop: 10 }}
                         data={clothings}
                         renderItem={this._renderEachListItem}
-                        keyExtractor={(item, index) => index.toString()}
+                        keyExtractor={(item, index) => index + '_eachHistoryItemClothings'}
                     />
 
                     <Button onPress={this._onPress} style={{alignSelf: 'center'}}>
