@@ -96,6 +96,7 @@ class DatabaseUtil {
     }
 
     static setHistoryFromResponse = (clothings) => {
+        DatabaseUtil.data.history = [];
         clothings.forEach(eachOrder => {
 
             let order = [];

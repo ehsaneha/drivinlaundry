@@ -28,6 +28,7 @@ class SettingsScreen extends Component {
             passwordText: password,
             costText: cost,
             backLoading: false,
+            imgLoading: false,
         };
 
     }
@@ -88,19 +89,25 @@ class SettingsScreen extends Component {
                 //   avatarSource: source,
                 // });
 
-                NetworkUtil.uploadImage(DatabaseUtil.data.setting, response)
-                    .then((avatar) => {
-                        DatabaseUtil.data.setting.avatar = avatar;
-                        this.setState(prevState => {
-                            state = {...prevState};
-                            state.avatarSource = { uri: NetworkUtil.getAvatarUri(avatar), cache: 'reload' };
-                            return state;
+                this.setState({
+                    imgLoading: true,
+                }, () => {
+
+                    NetworkUtil.uploadImage(DatabaseUtil.data.setting, response)
+                        .then((avatar) => {
+                            DatabaseUtil.data.setting.avatar = avatar;
+                            DatabaseUtil.storeSetting();
+
+                            this.setState({
+                                avatarSource: { uri: NetworkUtil.getAvatarUri(avatar), cache: 'reload' },
+                                imgLoading: false,
+                            });
+                        })
+                        .catch((error) => {
+                            ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
                         });
-                        DatabaseUtil.storeSetting();
-                    })
-                    .catch((error) => {
-                        ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
-                    });
+
+                });
             }
         });
 
@@ -145,9 +152,22 @@ class SettingsScreen extends Component {
         }
     }
 
+    _renderActivityIndicator = () => {
+        if(this.state.imgLoading) {
+            return(
+                <View style={{position: 'absolute', justifyContent: 'center', alignItems: 'center', height: 160, width: 160,}}>
+                    <ActivityIndicator
+                        animating={true}
+                        color={'white'}
+                    />
+                </View>
+            );
+        }
+    }
+
     _renderAvatar = () => {
         const {avatar} = DatabaseUtil.data.setting;
-
+        console.log(avatar);
         return avatar == 'avatar.jpg' || avatar == 'avatar.jpeg' ?
         (
             <Avatar.Icon size={160} icon={'person'} />
@@ -190,6 +210,8 @@ class SettingsScreen extends Component {
                                 <Icon name={'photo-camera'} size={size} color='white' />
                             )}
                         />
+
+                        {this._renderActivityIndicator()}
                     </View>
                 </View>
 

@@ -5,7 +5,8 @@ class NetworkUtil {
     // static serverUrl = 'http://10.0.3.2:800/';
     static serverUrl = 'http://ehsaneha.ir/';
     static apiUrl = 'api/';
-    static avatarUrl = 'storage/avatars/';
+    static avatarUrl = 'storage/';
+    // static avatarUrl = 'storage/avatars/';
 
     static get = (url) => {//
         return fetch(NetworkUtil.serverUrl + url.replace('.', ','))//https://facebook.github.io/react-native/movies.json
