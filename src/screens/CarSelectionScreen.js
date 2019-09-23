@@ -23,6 +23,7 @@ class CarSelectionScreen extends Component {
             driversList: [],
             reloadFABVisible: false,
             loading: true,
+            userLocation: null,
         };
 
         this.selectedDriver = { id: '', name: '', phone: '', avatar: '', cost: '' };
@@ -31,6 +32,9 @@ class CarSelectionScreen extends Component {
         this.beforeNextFABPressed = this.beforeNextFABPressed.bind(this);
         this.onItemPressed = this.onItemPressed.bind(this);
     }
+
+
+
 
     _reloadDrivers = () => {
         const { latitude, longitude } = DatabaseUtil.data.order.location;
@@ -60,14 +64,14 @@ class CarSelectionScreen extends Component {
     }
 
     beforeNextFABPressed = () => {
-        if(this.state.driversList.length == 0) {
+        if (this.state.driversList.length == 0) {
             ToastAndroid.show('You should choose at least one driver!', ToastAndroid.LONG);
             return false;
         }
 
         DatabaseUtil.data.order.driver = this.selectedDriver;
 
-        const {cost} = this.selectedDriver;
+        const { cost } = this.selectedDriver;
         DatabaseUtil.data.order.driver.cost = cost == '' ? '5' : cost;
 
         return true;
@@ -86,8 +90,8 @@ class CarSelectionScreen extends Component {
             // driversList: [],
             reloadFABVisible: false,
             loading: true,
-        }, 
-        this._reloadDrivers);
+        },
+            this._reloadDrivers);
     }
 
     _renderEachItem = ({ item }) => {

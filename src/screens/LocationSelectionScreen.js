@@ -4,11 +4,13 @@ import {
     Text,
     StyleSheet,
     Image,
+    ToastAndroid,
     FlatList
 } from "react-native";
 import LocationsListItem from '../components/LocationsListItem'
 
 import DatabaseUtil from '../database/DatabaseUtil';
+import GeolocationUtil from '../geolocation/GeolocationUtil'
 
 class LocationSelectionScreen extends Component {
     
@@ -26,6 +28,7 @@ class LocationSelectionScreen extends Component {
                 { title: 'Title Text', key: 6, iconName: '', latitude: '0.232423', longitude: '1.2837287'},
                 { title: 'Title Text', key: 7, iconName: '', latitude: '0.232423', longitude: '1.2837287' }
             ],
+            userLocation: null,
         };
         
         this.latitude = this.state.locationsData[0].latitude;
@@ -39,6 +42,34 @@ class LocationSelectionScreen extends Component {
 
     componentDidMount = () => {
         this.props.screenProps(this);
+        this._getLocation();
+    }
+    
+    _getLocation = () => {
+        GeolocationUtil.checkLocationPermission()
+            .then(isAutherized => {
+
+                if (isAutherized) {
+                    GeolocationUtil.getLocation(
+                        (position) => {
+                            console.log(position);
+                            this.setState({
+                                userLocation: {
+                                    latitude: position.coords.latitude,
+                                    longitude: position.coords.longitude,
+                                    latitudeDelta: 0.045,
+                                    longitudeDelta: 0.045,
+                                }
+                            });
+                        },
+                        (error) => {
+                            console.log(error.code, error.message);
+                            ToastAndroid.show('Location Problem!', ToastAndroid.LONG);
+                        }
+                    );
+                }
+                else ToastAndroid.show('Location Permission Problem!', ToastAndroid.LONG);
+            });
     }
     
     beforeNextFABPressed = () => {

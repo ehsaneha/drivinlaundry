@@ -67,8 +67,24 @@ class HomeScreen extends Component {
                 addFABVisible: true,
             });
         }
+       
 
+       /*  
+        
 
+        Permissions.check('location', { type: 'always' }).then(response => {
+            console.log(response);
+        }); */
+
+        /* GeolocationUtil.getUserCurrentLocation()
+            .then((location) => {
+                console.log(location);
+            })
+            .catch((error) => {
+                console.log(error);
+            }); */
+
+            
     }
 
     // _showModal = () => this.setState({ visible: true });
