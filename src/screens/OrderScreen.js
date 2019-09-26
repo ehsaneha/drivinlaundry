@@ -24,6 +24,8 @@ class OrderScreen extends Component {
         currentScreenIndex: 0,
     };
 
+    beforeNextFABPressedList = [];
+
 
     screens = [
         { name: 'ClothingSelection', iconName: 'tshirt', ref: null },
@@ -38,7 +40,7 @@ class OrderScreen extends Component {
     static router = OrderSubViewNavigator.router;
 
     _nextFABPressed = () => {
-        let subViewAllowsToGoNext = this.beforeNextFABPressed();
+        let subViewAllowsToGoNext = this.beforeNextFABPressedList[this.state.currentScreenIndex]();
 
         if (subViewAllowsToGoNext) {
             this.setState({ currentScreenIndex: this.state.currentScreenIndex + 1 },
@@ -131,7 +133,7 @@ class OrderScreen extends Component {
                 <View style={{ flex: 1 }}>
                     <OrderSubViewNavigator
                         navigation={this.props.navigation}
-                        screenProps={ref => this.beforeNextFABPressed = ref.beforeNextFABPressed}
+                        screenProps={ref => this.beforeNextFABPressedList[this.state.currentScreenIndex] = ref.beforeNextFABPressed}
                     />
 
                     {/* {this._renderSettingButton()} */}

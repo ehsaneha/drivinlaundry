@@ -119,8 +119,8 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     },
     turnIndicatorCenter: {
-        width: 12,
-        height: 12,
+        width: 11,
+        height: 11,
         borderRadius: 6,
         backgroundColor: 'black'
     }

@@ -9,6 +9,7 @@ import {
     RatingScreen,
     SettingsScreen,
     HomeDriverScreen,
+    HomeScreen,
 } from '../screens'
 import AppNavigator from './AppNavigator';
 import { fadeIn } from 'react-navigation-transitions';
@@ -16,11 +17,12 @@ import { fadeIn } from 'react-navigation-transitions';
 const MainNavigator = createStackNavigator(
     {
         Splash: SplashScreen,
-        Settings: SettingsScreen,
-        HomeDriver: HomeDriverScreen,
         SignUp: SignUpScreen,
         SignIn: SignInScreen,
-        App: AppNavigator,
+        // App: AppNavigator,
+        Settings: SettingsScreen,
+        HomeDriver: HomeDriverScreen,
+        Home: HomeScreen,
         Order: OrderScreen,
         ServiceProcess: ServiceProcessScreen,
         Rating: RatingScreen,

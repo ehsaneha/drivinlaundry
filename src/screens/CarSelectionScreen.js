@@ -9,10 +9,13 @@ import {
 } from "react-native";
 import { ActivityIndicator, DefaultTheme, FAB, } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/dist/MaterialCommunityIcons';
+import MapView, { Marker } from 'react-native-maps'
 
 import ClientsListItem from '../components/ClientsListItem'
 import NetworkUtil from '../network/NetworkUtil'
 import DatabaseUtil from '../database/DatabaseUtil'
+import GeolocationUtil from '../geolocation/GeolocationUtil'
+import MarkerIcon from '../components/MarkerIcon'
 
 class CarSelectionScreen extends Component {
 
@@ -23,14 +26,14 @@ class CarSelectionScreen extends Component {
             driversList: [],
             reloadFABVisible: false,
             loading: true,
-            userLocation: null,
+            selectedIndex: 0,
         };
 
-        this.selectedDriver = { id: '', name: '', phone: '', avatar: '', cost: '' };
         this.itemsDeActivateFuncs = {};
 
         this.beforeNextFABPressed = this.beforeNextFABPressed.bind(this);
         this.onItemPressed = this.onItemPressed.bind(this);
+        this._renderMarkers = this._renderMarkers.bind(this);
     }
 
 
@@ -43,11 +46,11 @@ class CarSelectionScreen extends Component {
                 console.log(response);
                 this.setState({
                     driversList: response,
-                    reloadFABVisible: response.length > 0,
+                    reloadFABVisible: true,
                     loading: false,
+                    selectedIndex: 0,
                 });
 
-                this.selectedDriver = response[0];
             })
             .catch((error) => {
                 ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
@@ -63,53 +66,68 @@ class CarSelectionScreen extends Component {
         this._reloadDrivers();
     }
 
+
     beforeNextFABPressed = () => {
-        if (this.state.driversList.length == 0) {
+        const {driversList, selectedIndex} = this.state;
+        if (driversList.length == 0) {
             ToastAndroid.show('You should choose at least one driver!', ToastAndroid.LONG);
             return false;
         }
 
-        DatabaseUtil.data.order.driver = this.selectedDriver;
+        DatabaseUtil.data.order.driver = driversList[selectedIndex];
 
-        const { cost } = this.selectedDriver;
+        const { cost } = driversList[selectedIndex];
         DatabaseUtil.data.order.driver.cost = cost == '' ? '5' : cost;
 
         return true;
     }
 
-    onItemPressed = (id, name, phone, avatar, cost) => {
-        if (this.selectedDriver.id === id)
+    onItemPressed = (index) => {
+        const {selectedIndex} = this.state;
+        if (selectedIndex === index)
             return;
 
-        this.itemsDeActivateFuncs[this.selectedDriver.id].deActivate();
-        this.selectedDriver = { id, name, phone, avatar, cost };
+        this.itemsDeActivateFuncs[selectedIndex].deActivate();
+        this.setState({selectedIndex: index});
     }
 
     _reloadFABPressed = () => {
         this.setState({
-            // driversList: [],
             reloadFABVisible: false,
             loading: true,
         },
             this._reloadDrivers);
     }
 
-    _renderEachItem = ({ item }) => {
+    _renderEachItem = ({ item, index }) => {
         return (
             <ClientsListItem
                 itemInfo={item}
                 iconName={'local-taxi'}
-                onRef={ref => this.itemsDeActivateFuncs[item.id] = ref}
+                onRef={ref => this.itemsDeActivateFuncs[index] = ref}
                 onPressItem={this.onItemPressed}
-                active={item.id === this.state.driversList[0].id}
+                active={this.state.selectedIndex === index}
                 avatarSource={{ uri: NetworkUtil.getAvatarUri(item.avatar), cache: 'reload' }}
                 avatar={item.avatar}
+                index={index}
             />
         );
     }
 
+    _renderIfFlatlistIsEmpty = () => {
+        return (
+            <View>
+                <Text>
+                    We could not find any drivers!
+                </Text>
+            </View>
+        );
+    }
+
     _renderFlatListOrActivityIndicator = () => {
-        return this.state.loading ?
+        const { loading, driversList } = this.state;
+
+        return loading ?
             (
                 <View style={{ position: "absolute", marginTop: 90, left: 0, right: 0, alignItems: "center" }}>
                     <ActivityIndicator
@@ -124,9 +142,10 @@ class CarSelectionScreen extends Component {
                     style={{ position: 'absolute', marginTop: 70, marginLeft: 3 }}
                     horizontal={true}
                     showsHorizontalScrollIndicator={false}
-                    data={this.state.driversList}
+                    data={driversList}
                     renderItem={this._renderEachItem}
                     keyExtractor={(item, index) => index + '_drivers'}
+                    ListEmptyComponent={this._renderIfFlatlistIsEmpty}
                 />
             );
     }
@@ -146,13 +165,46 @@ class CarSelectionScreen extends Component {
         }
     }
 
+    _renderMarkers = () => {
+        const {driversList, selectedIndex} = this.state;
+
+        return driversList.map((each, index) => {
+            if (index < 3) {
+                return (
+                    <Marker
+                        key={index + '_EachCarMarker'}
+                        coordinate={{
+                            latitude: parseFloat(each.latitude),
+                            longitude: parseFloat(each.longitude),
+                        }}
+                    >
+                        <MarkerIcon iconName='local-taxi' active={selectedIndex === index}/>
+                    </Marker>
+                );
+            }
+        });
+    }
+
     render() {
         return (
             <View style={styles.container}>
-                <Image
+                {/* <Image
                     style={styles.backgroundImage}
                     source={require('../assets/map.png')}
-                />
+                /> */}
+
+                {/* <MapView
+                    style={{ flex: 1 }}
+                    showsUserLocation={true}
+                    showsCompass={true}
+                    rotateEnabled={false}
+                // initialRegion={GeolocationUtil.userLocation}
+                > 
+
+                    {this._renderMarkers()}
+                 
+
+                </MapView>*/}
 
                 {this._renderFlatListOrActivityIndicator()}
 
@@ -169,6 +221,11 @@ const styles = StyleSheet.create({
         flex: 1,
         // alignItems: 'center',
         // justifyContent: 'center'
+    },
+    emptyListContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center'
     },
     backgroundImage: {
         flex: 1,

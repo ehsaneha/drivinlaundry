@@ -9,6 +9,7 @@
   "dependencies": {
     "@ptomasroos/react-native-multi-slider": "^1.0.0",
     "@react-native-community/async-storage": "^1.6.1",
+    "@react-native-community/netinfo": "^4.2.2",
     "moment": "^2.24.0",
     "react": "16.8.6",
     "react-native": "0.60.4",

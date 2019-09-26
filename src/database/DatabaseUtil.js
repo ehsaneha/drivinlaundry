@@ -4,6 +4,7 @@ import { Alert } from 'react-native'
 class DatabaseUtil {
 
     static _orderHasChanged = false;
+    static reloadHistoryFunc = null;
 
     static storeData = async (key, value) => {
         try {
@@ -91,8 +92,8 @@ class DatabaseUtil {
         return false;
     }
 
-    static setSettingFromResponse = ({ id, phone, name, password, avatar, type, cost }) => {
-        DatabaseUtil.data.setting = { id, phone, name, password, avatar, userType: type, cost };
+    static setSettingFromResponse = ({ id, phone, name, password, avatar, type, cost, online }) => {
+        DatabaseUtil.data.setting = { id, phone, name, password, avatar, userType: type, cost, online };
     }
 
     static setHistoryFromResponse = (clothings) => {
@@ -105,17 +106,11 @@ class DatabaseUtil {
             });
             
             DatabaseUtil.data.history.push(order);
+
         });
     }
 
-    static setOrderFromResponse = ({ 
-            id, 
-            start_time, 
-            car_laundry_arrival_time, 
-            laundry_done_time, 
-            car_laundry_gone_time, 
-            done_time 
-    }) => {
+    static setOrderFromResponse = ({ id, cost, start_time, car_laundry_arrival_time, laundry_done_time, car_laundry_gone_time, done_time, users }) => {
 
         const {order} = DatabaseUtil.data;
         if(order.id != id || order.start_time != start_time ||
@@ -123,15 +118,22 @@ class DatabaseUtil {
             order.laundry_done_time != laundry_done_time ||
             order.car_laundry_gone_time != car_laundry_gone_time ||
             order.done_time != done_time) {
-                DatabaseUtil._orderHasChanged = true;
-        }
 
-        DatabaseUtil.data.order.id = id;
-        DatabaseUtil.data.order.start_time = start_time;
-        DatabaseUtil.data.order.car_laundry_arrival_time = car_laundry_arrival_time;
-        DatabaseUtil.data.order.laundry_done_time = laundry_done_time;
-        DatabaseUtil.data.order.car_laundry_gone_time = car_laundry_gone_time;
-        DatabaseUtil.data.order.done_time = done_time;
+                DatabaseUtil._orderHasChanged = true;
+
+                DatabaseUtil.data.order = {
+                    id,
+                    cost,
+                    start_time,
+                    car_laundry_arrival_time,
+                    laundry_done_time,
+                    car_laundry_gone_time,
+                    done_time,
+                    user: users.find(eachUser => eachUser.type === 1),
+                    driver: users.find(eachUser => eachUser.type === 2),
+                    laundry: users.find(eachUser => eachUser.type === 3),
+                }
+            }
     }
 
     static data = {
@@ -141,9 +143,9 @@ class DatabaseUtil {
             clothings: {},
             time: { start: 0, end: 0, date: '' },
             location: { latitude: '', longitude: '' },
-            driver: { id: 0, name: '', phone: '', avatar: '', cost: '' },
-            laundry: { id: 0, name: '', phone: '', avatar: '', cost: '' },
-            user: { id: 0, name: '', phone: '', avatar: '' },
+            driver: { id: 0, name: '', phone: '', avatar: '', cost: '', latitude: '', longitude: '' },
+            laundry: { id: 0, name: '', phone: '', avatar: '', cost: '', latitude: '', longitude: '' },
+            user: { id: 0, name: '', phone: '', avatar: '', cost: '', latitude: '', longitude: '' },
             cost: 0,
             start_time: '',
             car_laundry_arrival_time: '',
@@ -158,6 +160,10 @@ class DatabaseUtil {
             avatar: 'avatar.jpeg',
             password: 'password',
             userType: 1,
+            cost: 0,
+            online: 1,
+            latitude: 0,
+            longitude: 10,
         },
         drivers: [],
         laundries: [],

@@ -1,46 +1,15 @@
 
-import ToastAndroid from 'react-native';
-import NetInfo from "@react-native-community/netinfo";
+import {
+    ToastAndroid,
+} from 'react-native';
 
-import AlertSuccessOrExit from '../components/AlertSuccessOrExit'
+import NetworkUtil from '../network/NetworkUtil'
+import DatabaseUtil from '../database/DatabaseUtil'
 
-class NetworkUtil {
-
-    // static serverUrl = 'http://10.0.3.2:800/';
-    static serverUrl = 'http://ehsaneha.ir/';
-    static apiUrl = 'api/';
-    static avatarUrl = 'storage/';
-    // static avatarUrl = 'storage/avatars/';
-
-    static serviceProcessTimeout = null;
-    static getOrderIfExists = null;
-
-
-    static get = (url) => {//
-        return fetch(NetworkUtil.serverUrl + url.replace('.', ','))
-            .then(response => response.json())
-            .then((responseJson) => {
-                return responseJson;
-            });
-    }
-
-    static postPut = (method, url, body) => {
-        return fetch(NetworkUtil.serverUrl + url, {
-            method,
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(body).replace('.', ','),
-        })
-            .then(response => response.json())
-            .then((responseJson) => {
-                return responseJson;
-            });
-    }
-
+class UserUtil {
+  
     static getDrivers = (latitude, longitude, onSuccess, onFail) => {
-        NetworkUtil.getInternetConnection(
+        NetworkUtil.checkInternetConnection(
             () => {
                 NetworkUtil.get(NetworkUtil.apiUrl + `getDrivers/${latitude}/${longitude}`)
                     .then(response => {
@@ -55,7 +24,7 @@ class NetworkUtil {
     }
 
     static getLaundries = (latitude, longitude, onSuccess, onFail) => {
-        NetworkUtil.getInternetConnection(
+        NetworkUtil.checkInternetConnection(
             () => {
                 NetworkUtil.get(NetworkUtil.apiUrl + `getLaundries/${latitude}/${longitude}`)
                     .then(response => {
@@ -70,7 +39,7 @@ class NetworkUtil {
     }
 
     static createOrder = ({ start_time, driver, laundry, user, clothings, cost }, onSuccess, onFail ) => {
-        NetworkUtil.getInternetConnection(
+        NetworkUtil.checkInternetConnection(
             () => {
                 NetworkUtil.postPut(
                     'POST',
@@ -94,7 +63,7 @@ class NetworkUtil {
     }
 
     static updateOrder = ({ id, start_time, cost, car_laundry_arrival_time, laundry_done_time, car_laundry_gone_time, done_time }, onSuccess, onFail ) => {
-        NetworkUtil.getInternetConnection(
+        NetworkUtil.checkInternetConnection(
             () => {
                 NetworkUtil.postPut(
                     'PUT',
@@ -120,7 +89,7 @@ class NetworkUtil {
     }
 
     static getOrderById = ({ id }, onSuccess, onFail ) => {
-        NetworkUtil.getInternetConnection(
+        NetworkUtil.checkInternetConnection(
             () => {
                 NetworkUtil.get(NetworkUtil.apiUrl + 'getOrderById/' + id)
                     .then(response => {
@@ -135,7 +104,7 @@ class NetworkUtil {
     }
 
     static getOrderByUserId = ({ id }, onSuccess, onFail ) => {
-        NetworkUtil.getInternetConnection(
+        NetworkUtil.checkInternetConnection(
             () => {
                 NetworkUtil.get(NetworkUtil.apiUrl + 'getOrderByUserId/' + id)
                     .then(response => {
@@ -150,7 +119,7 @@ class NetworkUtil {
     }
 
     static uploadImage = ({ id }, image, onSuccess, onFail) => {
-        NetworkUtil.getInternetConnection(
+        NetworkUtil.checkInternetConnection(
             () => {
                 NetworkUtil.postPut(
                     'POST',
@@ -175,7 +144,7 @@ class NetworkUtil {
     }
 
     static createUser = ({ nameText, phoneText, passwordText, userType, cost }, onSuccess, onFail ) => {
-        NetworkUtil.getInternetConnection(
+        NetworkUtil.checkInternetConnection(
             () => {
                 NetworkUtil.postPut(
                     'POST',
@@ -200,7 +169,7 @@ class NetworkUtil {
     }
 
     static updateUser = ({ id, phoneText, nameText, passwordText, costText }, onSuccess, onFail ) => {
-        NetworkUtil.getInternetConnection(
+        NetworkUtil.checkInternetConnection(
             () => {
                 NetworkUtil.postPut(
                     'PUT',
@@ -224,7 +193,7 @@ class NetworkUtil {
     }
 
     static updateUserOnline = ({ id }, online, onSuccess, onFail) => {
-        NetworkUtil.getInternetConnection(
+        NetworkUtil.checkInternetConnection(
             () => {
                 NetworkUtil.postPut(
                     'PUT',
@@ -244,23 +213,45 @@ class NetworkUtil {
             });
     }
 
-    static getUserByPhonePassword = ({ phoneText, passwordText }, onSuccess, onFail ) => {
-        NetworkUtil.getInternetConnection(
-            () => {
-                NetworkUtil.get(NetworkUtil.apiUrl + `getUserByPhonePassword/${phoneText}/${passwordText}`)
-                    .then(response => {
-                        onSuccess(response);
-                    })
-                    .catch(error => {
-                        console.log(error);
-                        ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
-                        onFail(error);
-                    });
-            });
+    validateSignInInputs = ( phoneText, passwordText ) => {
+
+        if(phoneText === '' || passwordText === '') {
+            ToastAndroid.show('Your should enter phone and password!', ToastAndroid.SHORT);
+            return false;
+        }
+
+
+        return true;
+    }
+
+    getUserByPhonePassword = ({ phoneText, passwordText }, onSuccess, onFail ) => {
+        
+        if(this.validateSignInInputs(phoneText, passwordText)) {
+            NetworkUtil.getUserByPhonePassword(
+                { phoneText, passwordText },
+                response => {
+                    if (response.id > -1) {
+                        DatabaseUtil.setSettingFromResponse(response);
+
+                        DatabaseUtil.storeSetting()
+                            .then(() => {
+                                const { userType } = DatabaseUtil.data.setting;
+                                onSuccess(userType);
+                            });
+
+                    }
+                    else {
+                        ToastAndroid.show('Your Phone or Password was not correct!', ToastAndroid.SHORT);
+                        onFail();
+                    }
+                }, onFail);
+        }
+        else onFail();
+        
     }
 
     static getAllClothingsOfOrdersByUserId = ({ id }, onSuccess, onFail ) => {
-        NetworkUtil.getInternetConnection(
+        NetworkUtil.checkInternetConnection(
             () => {
                 NetworkUtil.get(NetworkUtil.apiUrl + `getAllClothingsOfOrdersByUserId/${id}`)
                     .then(response => {
@@ -275,7 +266,7 @@ class NetworkUtil {
     }
 
     static updateUserRating = (driverId, laundryId, driverRating, laundryRating, onSuccess, onFail) => {
-        NetworkUtil.getInternetConnection(
+        NetworkUtil.checkInternetConnection(
             () => {
                 NetworkUtil.postPut(
                     'PUT',
@@ -297,7 +288,7 @@ class NetworkUtil {
     }
 
     static updateUserLocation = ({ id }, { latitude, longitude }, onSuccess, onFail ) => {
-        NetworkUtil.getInternetConnection(
+        NetworkUtil.checkInternetConnection(
             () => {
                 NetworkUtil.postPut(
                     'PUT',
@@ -318,20 +309,7 @@ class NetworkUtil {
             });
     }
 
-    static getInternetConnection = (onSuccess) => {
-        NetInfo.fetch()
-            .then(state => {
-                if (state.isConnected) {
-                    if(onSuccess) onSuccess();
-                }
-                else new AlertSuccessOrExit().alert(
-                        'Internet Connection Alert',
-                        'Please connect to the internet!',
-                        NetworkUtil.getInternetConnection
-                    );
-            });
-    }
 
 }
 
-export default NetworkUtil;
+export default UserUtil;

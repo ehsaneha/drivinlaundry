@@ -15,6 +15,7 @@ import NetworkUtil from '../network/NetworkUtil'
 import DatabaseUtil from '../database/DatabaseUtil'
 import HandleBackButton from '../components/HandleBackButton'
 // import { TouchableOpacity } from "react-native-gesture-handler";
+import UserUtil from '../utils/UserUtil'
 
 class SignInScreen extends Component {
     initState = {
@@ -31,41 +32,20 @@ class SignInScreen extends Component {
     }
 
     _signInPressed = () => {
-        // this.props.navigation.navigate('Home');
         Keyboard.dismiss();
-        this.setState((prevState) => {
-            state = { ...prevState };
-            state.loading = true;
-            return state;
-        }, () => {
-            NetworkUtil.getUserByPhonePassword(this.state)
-                .then((response) => {
-                    console.log(response);
-                    if (response.id > -1) {
-                        DatabaseUtil.setSettingFromResponse(response);
-
-                        DatabaseUtil.storeSetting()
-                            .then(() => {
-                                const { userType } = DatabaseUtil.data.setting;
-                                this.props.navigation.navigate(userType === 1 ? 'Home' : 'HomeDriver')
-                            });
-
-                    }
-                    else {
-                        ToastAndroid.show('Your Phone or Password was not correct!', ToastAndroid.SHORT);
-                        this.setState({
-                            loading: false,
-                        });
-                    }
-                })
-                .catch((error) => {
-                    console.log(error);
-                    ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
-                    this.setState({
-                        loading: false,
-                    });
-                });
+        this.setState({
+            loading: true,
         });
+
+        new UserUtil().getUserByPhonePassword(
+            this.state,
+            userType => this.props.navigation.navigate(userType === 1 ? 'Home' : 'HomeDriver'),
+            () => {
+                this.setState({
+                    loading: false,
+                });
+            }
+        );
     }
 
     _renderButtonOrActivityIndicator = () => {

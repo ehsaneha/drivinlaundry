@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { Appbar, Avatar, Button, Card, Title, Paragraph, FAB, DefaultTheme } from 'react-native-paper';
 import { AirbnbRating } from 'react-native-ratings';
+import Icon from 'react-native-vector-icons/dist/MaterialIcons';
 
 import HandleBackButton from '../components/HandleBackButton'
 import NetworkUtil from '../network/NetworkUtil'
@@ -23,8 +24,9 @@ class RatingScreen extends Component {
             loading: false,
         };
 
-        this.driverRating = 3;
-        this.laundryRating = 3;
+        this.ratings = [3, 3];
+        // this.driverRating = 3;
+        // this.laundryRating = 3;
 
         this._FABPressed = this._FABPressed.bind(this);
 
@@ -40,22 +42,68 @@ class RatingScreen extends Component {
             return state;
         }, () => {
 
-            NetworkUtil.updateUserRating(driver.id, laundry.id, this.driverRating, this.laundryRating)
+            NetworkUtil.updateUserRating(driver.id, laundry.id, this.ratings[0], this.ratings[1])
                 .then((response) => {
                     console.log(response);
 
                     DatabaseUtil.clearOrder();
                     this.props.navigation.navigate('Home');
+                    DatabaseUtil.reloadHistoryFunc();
+                })
+                .catch((error) => {
+                    console.log(error);
+                    ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
                 });
 
         });
 
     }
 
-    render() {
+    _renderRatingItems = () => {
         const { driver, laundry } = DatabaseUtil.data.order;
         const driverAvatarSource = { uri: NetworkUtil.getAvatarUri(driver.avatar) };
         const laundryAvatarSource = { uri: NetworkUtil.getAvatarUri(laundry.avatar) };
+        let users = [
+            {value: driver, avatarSource: driverAvatarSource, iconName: 'local-taxi'}, 
+            {value: laundry, avatarSource: laundryAvatarSource, iconName: 'local-laundry-service'}
+        ];
+
+        return users.map((each, index) => {
+            return(
+                <View 
+                    key={index + '_eachRatingItems'}
+                    style={{ flexDirection: 'row', marginTop: (index === 1 ? 10 : 0) }}>
+
+                    <View>
+                        <Avatar.Image
+                            source={each.avatarSource}
+                            key={each.avatarSource.uri}
+                        />
+
+                        <Avatar.Icon
+                            style={{ position: 'absolute', left: -5, top: -5, borderWidth: 1, borderColor: 'white' }}
+                            size={25}
+                            icon={({ size, color }) => (
+                                <Icon name={each.iconName} size={15} color='white' />
+                            )}
+                        />
+                    </View>
+
+                    <View style={{ marginLeft: 15 }}>
+                        <Title>{each.value.name}</Title>
+                        <AirbnbRating
+                            size={25}
+                            showRating={false}
+                            onFinishRating={rating => this.ratings[index] = rating}
+                            selectedColor={DefaultTheme.colors.primary}
+                        />
+                    </View>
+                </View>
+            );
+        });
+    }
+
+    render() {
 
         return (
             <HandleBackButton>
@@ -66,43 +114,10 @@ class RatingScreen extends Component {
                             title="Rating"
                         />
                     </Appbar.Header>
+
                     <View style={styles.container}>
-
-                        <View style={{ flexDirection: 'row', }}>
-
-                            <Avatar.Image
-                                source={driverAvatarSource}
-                                key={driverAvatarSource.uri}
-                            />
-
-                            <View style={{ marginLeft: 15 }}>
-                                <Title>{driver.name}</Title>
-                                <AirbnbRating
-                                    size={25}
-                                    showRating={false}
-                                    onFinishRating={rating => this.driverRating = rating}
-                                    selectedColor={DefaultTheme.colors.primary}
-                                />
-                            </View>
-                        </View>
-
-                        <View style={{ flexDirection: 'row', marginTop: 10 }}>
-
-                            <Avatar.Image
-                                source={laundryAvatarSource}
-                                key={laundryAvatarSource.uri}
-                            />
-
-                            <View style={{ marginLeft: 15 }}>
-                                <Title>{laundry.name}</Title>
-                                <AirbnbRating
-                                    size={25}
-                                    showRating={false}
-                                    onFinishRating={rating => this.laundryRating = rating}
-                                    selectedColor={DefaultTheme.colors.primary}
-                                />
-                            </View>
-                        </View>
+                      {this._renderRatingItems()}
+                    </View>
 
                         <FAB
                             color={DefaultTheme.colors.primary}
@@ -110,7 +125,6 @@ class RatingScreen extends Component {
                             icon={"check"}
                             onPress={this._FABPressed}
                         />
-                    </View>
                 </View>
             </HandleBackButton>
         );

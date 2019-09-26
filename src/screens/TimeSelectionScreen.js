@@ -2,7 +2,8 @@ import React, { Component } from "react";
 import {
     View,
     Text,
-    StyleSheet
+    StyleSheet,
+    ToastAndroid
 } from "react-native";
 import CalendarPicker from 'react-native-calendar-picker';
 import { DefaultTheme, Title } from 'react-native-paper';
@@ -15,9 +16,14 @@ class TimeSelectionScreen extends Component {
 
     constructor(props) {
         super(props);
+
+        let hourNow = moment().format('HH');
+        let minuteNow = moment().format('mm');
+        let startTime = parseFloat(hourNow) + (parseFloat(minuteNow) < 30 ? 0.5 : 1);
+
         this.state = {
             selectedStartDate: moment(),
-            multiSliderValue: [3, 7],
+            multiSliderValue: [startTime, startTime + 1],
         };
         this.onDateChange = this.onDateChange.bind(this);
         this.beforeNextFABPressed = this.beforeNextFABPressed.bind(this);
@@ -26,6 +32,10 @@ class TimeSelectionScreen extends Component {
     componentDidMount = () => {
         this.props.screenProps(this);
     }
+
+    _floatToIsoTime = (value) => {
+        return (value >= 10 ? '' : '0') + Math.floor(value) + ((value * 10) % 10 === 5 ? ':30' : ':00')
+    }
     
     beforeNextFABPressed = () => {
         const {selectedStartDate, multiSliderValue} = this.state;
@@ -33,13 +43,32 @@ class TimeSelectionScreen extends Component {
         // DatabaseUtil.data.order.time.start = multiSliderValue[0];
         // DatabaseUtil.data.order.time.end = multiSliderValue[1];
         // DatabaseUtil.data.order.time.date = moment(selectedStartDate).format("YYYY-MM-DD");
+        
+        let selectedDate = moment(selectedStartDate).format("YYYY-MM-DD");
+        let isBefor = moment(selectedDate + ':' + this._floatToIsoTime(multiSliderValue[0]), "YYYY-MM-DD:HH:mm").isBefore();
+
+        // ToastAndroid.show(selectedDate, ToastAndroid.LONG);
+        // ToastAndroid.show(this._floatToIsoTime(multiSliderValue[0]), ToastAndroid.LONG);
+        // ToastAndroid.show(this._floatToIsoTime(multiSliderValue[0]), ToastAndroid.LONG);
+        // ToastAndroid.show(moment().format('YYYY-MM-DD:HH:mm'), ToastAndroid.LONG);
+        // ToastAndroid.show(isBefor ? 'yes' : 'no', ToastAndroid.LONG);
+
+        // console.log(moment().format('YYYY-MM-DD:HH:mm'));
+        // console.log(selectedDate + ':' + this._floatToIsoTime(multiSliderValue[0]));
+
+        if(isBefor) {
+            ToastAndroid.show('You should choose time for future!', ToastAndroid.LONG);
+            return false;
+        }
+
 
         DatabaseUtil.data.order.start_time = 
             multiSliderValue[0] + ' ' + 
             multiSliderValue[1] + ' ' + 
-            moment(selectedStartDate).format("YYYY-MM-DD");
+            selectedDate;
             
         return true;
+
     }
 
     onDateChange(date) {
@@ -49,6 +78,7 @@ class TimeSelectionScreen extends Component {
     }
 
     multiSliderValuesChange = values => {
+        if(values[0] )
         this.setState({
             multiSliderValue: values,
         });

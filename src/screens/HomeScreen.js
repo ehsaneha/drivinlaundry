@@ -30,35 +30,56 @@ class HomeScreen extends Component {
             addFABVisible: false,
         };
 
+        DatabaseUtil.reloadHistoryFunc = this._reloadFABPressed;
+
         this._onItemPressed = this._onItemPressed.bind(this);
 
     }
 
+    _getOrderIfExists = () => {
+        NetworkUtil.getOrderByUserId(
+            DatabaseUtil.data.setting,
+            (response) => {
+                if (response.id > 0) {
+                    DatabaseUtil.setOrderFromResponse(response);
+                    this.props.navigation.navigate('ServiceProcess');
+                }
+                else this._reloadHistory();
+            },
+            () => {
+                this.setState({
+                    reloadFABVisible: true,
+                    loading: false,
+                    addFABVisible: false,
+                });
+            });
+    }
+
     _reloadHistory = () => {
-        NetworkUtil.getAllClothingsOfOrdersByUserId(DatabaseUtil.data.setting)
-            .then((response) => {
-                console.log(response);
+        NetworkUtil.getAllClothingsOfOrdersByUserId(
+            DatabaseUtil.data.setting,
+            () => {
                 DatabaseUtil.setHistoryFromResponse(response);
-                console.log(DatabaseUtil.data.history);
+
                 this.setState({
                     history: DatabaseUtil.data.history,
                     loading: false,
                     reloadFABVisible: true,
                     addFABVisible: true,
                 });
-            })
-            .catch((error) => {
-                ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
+            },
+            () => {
                 this.setState({
                     loading: false,
                     reloadFABVisible: true,
+                    addFABVisible: false,
                 });
             });
     }
 
     componentDidMount = () => {
         if (this.state.history.length === 0) {
-            this._reloadHistory();
+            this._getOrderIfExists();
         }
         else {
             this.setState({
@@ -79,8 +100,8 @@ class HomeScreen extends Component {
         /* GeolocationUtil.getUserCurrentLocation()
             .then((location) => {
                 console.log(location);
-            })
-            .catch((error) => {
+            },
+            () => {
                 console.log(error);
             }); */
 
@@ -119,7 +140,6 @@ class HomeScreen extends Component {
     _renderLoadingOrFlatListIfHistoryExists = () => {
         const { loading, history } = this.state;
         if (loading) {
-            console.log('loading');
             return (
                 <ActivityIndicator
                     style={{ marginTop: 200 }}
@@ -199,7 +219,7 @@ class HomeScreen extends Component {
                             </View>
                         </View>
                         <Appbar.Content />
-                        <Appbar.Action icon="settings" onPress={() => this.props.navigation.push('Settings')} />
+                        <Appbar.Action icon="settings" onPress={() => this.props.navigation.navigate('Settings')} />
                     </Appbar.Header>
 
                     {this._renderLoadingOrFlatListIfHistoryExists()}

@@ -3,12 +3,14 @@ import {
     View,
     Text,
     StyleSheet,
-    TouchableOpacity
+    TouchableOpacity,
+    ToastAndroid,
 } from "react-native";
 import { Avatar, Appbar, TextInput, ActivityIndicator, Button  } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/dist/MaterialIcons';
 // import Icon as IconF from 'react-native-vector-icons/dist/FontAwesome';
 import ImagePicker from 'react-native-image-picker';
+import { NavigationActions, StackActions } from 'react-navigation'
 
 import NetworkUtil from '../network/NetworkUtil'
 import DatabaseUtil from '../database/DatabaseUtil'
@@ -19,14 +21,14 @@ class SettingsScreen extends Component {
     constructor(props) {
         super(props);
 
-        const { id, name, phone, password, avatar, cost } = DatabaseUtil.data.setting;
+        const { id, name, phone, password, avatar, cost, userType } = DatabaseUtil.data.setting;
         this.state = {
             id,
             avatarSource: { uri: NetworkUtil.getAvatarUri(avatar), cache: 'reload' },
             nameText: name,
             phoneText: phone,
             passwordText: password,
-            costText: cost,
+            costText: cost + '',
             backLoading: false,
             imgLoading: false,
         };
@@ -35,31 +37,46 @@ class SettingsScreen extends Component {
 
     _backPressed = () => {
         const { nameText, phoneText, passwordText, costText } = this.state;
-        const { name, phone, password, cost } = DatabaseUtil.data.setting;
-        if (nameText !== name || phoneText !== phone || passwordText !== password || costText !== cost) {
+        const { name, phone, password, cost, userType } = DatabaseUtil.data.setting;
+        if (nameText !== name || phoneText !== phone || passwordText !== password || (costText != cost && userType > 1)) {
 
-            this.setState((prevState) => {
-                state = { ...prevState };
-                state.backLoading = true;
-                return state;
+            this.setState({
+                backLoading: true,
             }, () => {
 
                 NetworkUtil.updateUser(this.state)
                     .then((response) => {
                         console.log(response);
-                        DatabaseUtil.setSettingFromResponse(response);
+                        if(response.id === -1) {
+                            ToastAndroid.show('This Phone number is already registered!', ToastAndroid.LONG);
+                            this.setState({
+                                backLoading: false,
+                            });
+                        }
+                        else if(response.id > 0) {
+                            DatabaseUtil.setSettingFromResponse(response);
+                            DatabaseUtil.storeSetting();
+                            this.props.navigation.goBack(null);
+                        }
+                        else {
+                            ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
+                            this.setState({
+                                backLoading: false,
+                            });
+                        }
 
-                        DatabaseUtil.storeSetting();
-                        this.props.navigation.goBack(null);
-
+                    })
+                    .catch((error) => {
+                        ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
+                        this.setState({
+                            backLoading: false,
+                        });
                     });
 
             });
 
         }
-        else {
-            this.props.navigation.goBack(null)
-        }
+        else this.props.navigation.goBack(null)
     }
 
     _callCamera = () => {
@@ -115,8 +132,16 @@ class SettingsScreen extends Component {
     }
 
     _SignOutButtonPresssed = () => {
+        clearTimeout(NetworkUtil.serviceProcessTimeout);
+        DatabaseUtil.clearOrder();
         DatabaseUtil.clearSetting()
-            .then(() => this.props.navigation.navigate('SignIn'));
+            .then(() => { 
+                const resetAction = StackActions.reset({
+                    index: 0,
+                    actions: [NavigationActions.navigate({ routeName: 'SignIn' })],
+                });
+                this.props.navigation.dispatch(resetAction);
+            });
     }
 
 

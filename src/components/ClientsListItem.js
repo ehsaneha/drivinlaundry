@@ -22,13 +22,13 @@ class ClientsListItem extends Component {
     }
 
     _onPress = () => {
-        const {id, name, phone, avatar, cost} = this.props.itemInfo;
+        const {index, onPressItem} = this.props;
 
         this.setState({
             active: true
         });
 
-        this.props.onPressItem(id, name, phone, avatar, cost);
+        onPressItem(index);
     }
 
     deActivate = () => {

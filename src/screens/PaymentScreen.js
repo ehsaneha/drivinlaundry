@@ -29,8 +29,9 @@ class PaymentScreen extends Component {
             payLoading: true,
         });
 
+        DatabaseUtil.data.order.user = DatabaseUtil.data.setting;
         const { setting, order } = DatabaseUtil.data;
-        NetworkUtil.createOrder(setting.id, order)
+        NetworkUtil.createOrder(order)
             .then((response) => {
                 console.log(response);
                 DatabaseUtil.setOrderFromResponse(response);
