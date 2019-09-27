@@ -20,6 +20,7 @@ import GeolocationUtil from '../geolocation/GeolocationUtil'
 import DatabaseUtil from "../database/DatabaseUtil";
 import HandleBackButton from '../components/HandleBackButton'
 import MarkerIcon from '../components/MarkerIcon'
+import OrderUtil from "../utils/OrderUtil";
 
 class ServiceProcessScreen extends Component {
 
@@ -52,6 +53,8 @@ class ServiceProcessScreen extends Component {
         ];
         this.otherUsers.splice(userType - 1, 1);
 
+        this.orderUtil = new OrderUtil();
+
 
 
         this._doneButtonPressed = this._doneButtonPressed.bind(this);
@@ -63,72 +66,40 @@ class ServiceProcessScreen extends Component {
         this._getLocation();
     }
 
+    componentWillUnmount = () => {
+        clearTimeout(this.serviceProcessTimeout);
+    }
+
     
     _getLocation = () => {
-        GeolocationUtil.checkLocationPermission()
-            .then(isAutherized => {
+        new GeolocationUtil().getLocation(
+            ({latitude, longitude}) => {
+                this.setState({
+                    userLocation: {latitude, longitude},
+                });
+            }
+        );
 
-                if (isAutherized) {
-                    GeolocationUtil.getLocation(
-                        ({coords}) => {
-                            console.log(coords);
-
-                            GeolocationUtil.userLocation = {
-                                latitude: coords.latitude,
-                                longitude: coords.longitude,
-                                latitudeDelta: 0.045,
-                                longitudeDelta: 0.045,
-                            };
-
-                            this.setState({
-                                userLocation: GeolocationUtil.userLocation,
-                            });
-
-                        },
-                        (error) => {
-                            console.log(error.code, error.message);
-                            ToastAndroid.show('Location Problem!', ToastAndroid.LONG);
-                        }
-                    );
-                }
-                else ToastAndroid.show('Location Permission Problem!', ToastAndroid.LONG);
-            });
     }
 
     _getOrder = () => {
-        const {order} = DatabaseUtil.data;
-
-        if(order.id > 0) {
-            NetworkUtil.getOrderById(order)
-                .then((response) => {
-                    DatabaseUtil.setOrderFromResponse(response);
-                    if (DatabaseUtil.orderHasChanged()) {
-                        this._convertOrderToServiceProcess();
-                    }
-                        
-                    this.serviceProcessTimeout = setTimeout(this._getOrder, 15000);
-                })
-                .catch((error) => {
-                    ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
-                    clearTimeout(this.serviceProcessTimeout);
-                    this.setState({
-                        reloadFABVisible: true,
-                    });
+        this.orderUtil.getOrderById(
+            () => this.serviceProcessTimeout = setTimeout(this._getOrder, 15000),
+            this._convertOrderToServiceProcess,
+            () => {
+                clearTimeout(this.serviceProcessTimeout);
+                this.setState({
+                    reloadFABVisible: true,
                 });
-        }
+            }
+        );
     }
 
     _updateOrder = () => {
-        NetworkUtil.updateOrder(DatabaseUtil.data.order)
-            .then((response) => {
-                DatabaseUtil.setOrderFromResponse(response);
-                if (DatabaseUtil.orderHasChanged()) {
-                    this._convertOrderToServiceProcess();
-                }
-            })
-            .catch((error) => {
-                ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
-            });
+        this.orderUtil.updateOrder(
+            this._convertOrderToServiceProcess,
+            () => {}
+        );
     }
 
     _getTurnId = (serviceProcessesList) => {

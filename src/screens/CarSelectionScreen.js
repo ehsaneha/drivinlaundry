@@ -16,6 +16,7 @@ import NetworkUtil from '../network/NetworkUtil'
 import DatabaseUtil from '../database/DatabaseUtil'
 import GeolocationUtil from '../geolocation/GeolocationUtil'
 import MarkerIcon from '../components/MarkerIcon'
+import UserUtil from "../utils/UserUtil";
 
 class CarSelectionScreen extends Component {
 
@@ -30,6 +31,7 @@ class CarSelectionScreen extends Component {
         };
 
         this.itemsDeActivateFuncs = {};
+        this.userUtil = new UserUtil();
 
         this.beforeNextFABPressed = this.beforeNextFABPressed.bind(this);
         this.onItemPressed = this.onItemPressed.bind(this);
@@ -40,25 +42,20 @@ class CarSelectionScreen extends Component {
 
 
     _reloadDrivers = () => {
-        const { latitude, longitude } = DatabaseUtil.data.order.location;
-        NetworkUtil.getDrivers(latitude, longitude)
-            .then((response) => {
-                console.log(response);
+        this.userUtil.getDrivers(
+            response => 
                 this.setState({
                     driversList: response,
                     reloadFABVisible: true,
                     loading: false,
                     selectedIndex: 0,
-                });
-
-            })
-            .catch((error) => {
-                ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
+                }),
+            () => 
                 this.setState({
                     loading: false,
                     reloadFABVisible: true,
-                });
-            });
+                })
+        );
     }
 
     componentDidMount = () => {
@@ -107,7 +104,7 @@ class CarSelectionScreen extends Component {
                 onRef={ref => this.itemsDeActivateFuncs[index] = ref}
                 onPressItem={this.onItemPressed}
                 active={this.state.selectedIndex === index}
-                avatarSource={{ uri: NetworkUtil.getAvatarUri(item.avatar), cache: 'reload' }}
+                avatarSource={this.userUtil.getAvatarUri(item.avatar)}
                 avatar={item.avatar}
                 index={index}
             />

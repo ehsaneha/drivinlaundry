@@ -9,14 +9,14 @@ import {
     ToastAndroid,
 
 } from "react-native";
-import { Button, TextInput, DefaultTheme, ActivityIndicator } from 'react-native-paper';
+import { Button, TextInput, DefaultTheme, ActivityIndicator, Checkbox } from 'react-native-paper';
 import { NavigationEvents } from 'react-navigation';
 
-import NetworkUtil from '../network/NetworkUtil'
-import DatabaseUtil from '../database/DatabaseUtil'
+
 import HandleBackButton from '../components/HandleBackButton'
 import UserTypeSelection from '../components/UserTypeSelection'
 // import { TouchableOpacity } from "react-native-gesture-handler";
+import UserUtil from "../utils/UserUtil";
 
 class SignUpScreen extends Component {
     initState = {
@@ -24,6 +24,7 @@ class SignUpScreen extends Component {
         phoneText: '',
         passwordText: '',
         confirmPasswordText: '',
+        termsOfServiceChecked: false,
         cost: '',
         userType: '',
         loading: false,
@@ -40,63 +41,29 @@ class SignUpScreen extends Component {
     }
 
     _createUser = () => {
-        NetworkUtil.createUser(this.state)
-            .then((response) => {
-                console.log(response);
-                if (response.id > -1) {
-                    DatabaseUtil.setSettingFromResponse(response);
-
-                    DatabaseUtil.storeSetting()
-                        .then(() => {
-                            const { userType } = DatabaseUtil.data.setting;
-                            this.props.navigation.navigate(userType === 1 ? 'Home' : 'HomeDriver')
-                        });
-
-                }
-                else {
-                    ToastAndroid.show('This Phone number is already registered!', ToastAndroid.LONG);
-                    this.setState({
-                        loading: false,
-                    });
-                }
-
-            })
-            .catch((error) => {
-                ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
+        new UserUtil().createUser(
+            this.state,
+            userType => this.props.navigation.navigate(userType === 1 ? 'Home' : 'HomeDriver'),
+            () =>
                 this.setState({
                     loading: false,
-                });
-            });
-    }
-
-    _validate = () => {
-        const { passwordText, confirmPasswordText, } = this.state;
-
-        if(passwordText !== confirmPasswordText) {
-            ToastAndroid.show('password and confirm password is not the same!', ToastAndroid.LONG);
-            return false;
-        }
-
-
-        return true;
+                })
+        );
     }
 
     _signUpPressed = () => {
         Keyboard.dismiss();
 
-        if (this._validate()) {
+        this.setState((prevState) => {
+            state = { ...prevState };
+            state.loading = true;
 
-            this.setState((prevState) => {
-                state = { ...prevState };
-                state.loading = true;
+            state.cost = state.userType === 1 ? '0' : state.userType === 2 ? '1' : '2';
 
-                state.cost = state.userType === 1 ? '0' : state.userType === 2 ? '1' : '2';
-
-                return state;
-            },
+            return state;
+        },
             this._createUser);
 
-        }
     }
 
     _signInPressed = () => {
@@ -125,7 +92,7 @@ class SignUpScreen extends Component {
     }
 
     render() {
-        const { phoneText, nameText, passwordText, confirmPasswordText } = this.state;
+        const { phoneText, nameText, passwordText, confirmPasswordText, termsOfServiceChecked } = this.state;
         return (
             <HandleBackButton>
                 <NavigationEvents onWillFocus={() => this.setState(this.initState)} />
@@ -170,6 +137,22 @@ class SignUpScreen extends Component {
                         secureTextEntry={true}
                     />
 
+                    <View
+                        style={[
+                            styles.textInput,
+                            {
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                marginTop: 5,
+                            }
+                        ]}>
+                        <Checkbox
+                            color={DefaultTheme.colors.primary}
+                            status={termsOfServiceChecked ? 'checked' : 'unchecked'}
+                            onPress={() => this.setState({ termsOfServiceChecked: !termsOfServiceChecked })}
+                        />
+                        <Text>I accept terms of service.</Text>
+                    </View>
                     {this._renderButtonOrActivityIndicator()}
 
                     <View
@@ -203,7 +186,7 @@ export { SignUpScreen };
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        marginTop: 110
+        marginTop: 80
     },
     textInput: {
         marginHorizontal: 40,

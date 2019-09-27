@@ -17,6 +17,8 @@ import NetworkUtil from '../network/NetworkUtil'
 import DatabaseUtil from '../database/DatabaseUtil'
 import GeolocationUtil from '../geolocation/GeolocationUtil'
 import ServiceProcess from '../components/ServiceProcess'
+import OrderUtil from "../utils/OrderUtil";
+import UserUtil from "../utils/UserUtil";
 
 class HomeDriverScreen extends Component {
     state = {
@@ -27,7 +29,6 @@ class HomeDriverScreen extends Component {
     };
 
     timeOut = null;
-    getLocationTimeOut = null;
 
 
     componentDidMount = () => {
@@ -36,127 +37,59 @@ class HomeDriverScreen extends Component {
         this._getOrderIfExists();
     }
 
+    componentWillUnmount = () => {
+        clearTimeout(this.timeOut);
+    }
+
     _getLocation = () => {
-        GeolocationUtil.checkLocationPermission()
-            .then(isAutherized => {
+        new GeolocationUtil().getLocation(
+            ({ latitude, longitude }) => {
 
-                if (isAutherized) {
-                    GeolocationUtil.getLocation(
-                        ({coords}) => {
-                            console.log(coords);
+                new UserUtil().updateUserLocation(
+                    latitude, longitude,
+                    () => { },
+                    error => {
+                        console.log(error);
+                        this.setState({
+                            reloadFABVisible: true,
+                        });
+                    }
+                );
+            }
+        );
 
-                            if(coords.latitude === 0 && coords.longitude === 0) {
-                                ToastAndroid.show('Location Problem!', ToastAndroid.LONG);
-                                this.getLocationTimeOut = setTimeout(this._getLocation, 5000);
-                            }
-                            else {
-                                GeolocationUtil.userLocation = {
-                                    latitude: coords.latitude,
-                                    longitude: coords.longitude,
-                                    latitudeDelta: 0.045,
-                                    longitudeDelta: 0.045,
-                                };
-
-                                NetworkUtil.updateUserLocation(DatabaseUtil.data.setting, GeolocationUtil.userLocation)
-                                    .catch((error) => {
-                                        ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
-                                        this.setState({
-                                            reloadFABVisible: true,
-                                        });
-                                    });
-                                
-                                clearTimeout(this.getLocationTimeOut);
-                            }
-
-                        },
-                        (error) => {
-                            console.log(error.code, error.message);
-                            ToastAndroid.show('Location Problem!', ToastAndroid.LONG);
-                            this.getLocationTimeOut = setTimeout(this._getLocation, 5000);
-                        }
-                    );
-                }
-                else ToastAndroid.show('Location Permission Problem!', ToastAndroid.LONG);
-            });
     }
 
 
     _visibilityFABPressed = () => {
-        const { setting } = DatabaseUtil.data;
-        NetworkUtil.updateUserOnline(setting, !this.state.online)
-            .then((online) => {
-                DatabaseUtil.data.setting.online = online;
-
-                DatabaseUtil.storeSetting()
-                    .then(() => {
-
+        new UserUtil().updateUserOnline(
+            !this.state.online,
+            online => {
+                
+                this.setState({ online, },
+                    () => {
                         if (online) this._getOrderIfExists();
                         else clearTimeout(this.timeOut);
-
-
-                        this.setState({
-                            online,
-                        });
                     });
 
-            })
-            .catch((error) => {
-                ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
-                this.setState({
-                    reloadFABVisible: true,
-                });
-            });
+            },
+            () => this.setState({ reloadFABVisible: true, }),
+        );
     }
 
     _getOrderIfExists = () => {
         if (this.state.online) {
-            NetworkUtil.getOrderByUserId(DatabaseUtil.data.setting)
-                .then((response) => {
-                    if (response.id > 0) {
-                        DatabaseUtil.setOrderFromResponse(response);
-
-                        this.props.navigation.navigate('ServiceProcess');
-
-                        // this.setState(prevState => {
-                        //     state = { ...prevState };
-                        //     state.serviceProcessExists = true;
-                        //     state.fabVisible = false;
-                        //     return state;
-                        // });
-
-                    }
-                    else this.timeOut = setTimeout(this._getOrderIfExists, 15000);
-                })
-                .catch((error) => {
-                    ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
+            new OrderUtil().getOrderByUserId(
+                () => this.props.navigation.navigate('ServiceProcess'),
+                () => this.timeOut = setTimeout(this._getOrderIfExists, 15000),
+                error => {
                     clearTimeout(this.timeOut);
-                    this.setState({
-                        reloadFABVisible: true,
-                    });
-                });
-        }
-    }
-
-    _onServiceProcessDone = () => {
-        this.setState(prevState => {
-            state = { ...prevState };
-            state.serviceProcessExists = false;
-            state.fabVisible = true;
-            return state;
-        });
-        this._getOrderIfExists();
-    }
-
-    _renderServiceProcessIfExists = () => {
-        if (this.state.serviceProcessExists) {
-            return (
-                <ServiceProcess
-                    info={DatabaseUtil.data.order}
-                    onDone={this._onServiceProcessDone}
-                />
+                    this.setState({ reloadFABVisible: true, });
+                }
             );
         }
     }
+
 
     _renderFABIFNeeded = () => {
         const { online, fabVisible } = this.state;

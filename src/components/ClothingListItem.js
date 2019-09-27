@@ -18,13 +18,17 @@ class ClothingListItem extends Component {
     };
 
     _increamentCount = () => {
-        this.setState({ count: this.state.count + 1 });
-        this.props.onChange(this.props.itemInfo.key, this.state.count + 1);
+        const {itemInfo, onChange} = this.props;
+        this.setState({ count: this.state.count + 1 }, 
+            () => onChange(itemInfo.key, this.state.count));
+        ;
     };
 
     _delete = () => {
         this.setState({ count: 0 });
-        this.props.onChange(this.props.itemInfo.key, 0);
+        
+        const {itemInfo, onChange} = this.props;
+        onChange(itemInfo.key, 0);
     };
 
     _renderDeleteBadgeIfNeeded = () => {

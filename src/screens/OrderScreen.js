@@ -16,6 +16,7 @@ import OrderSubViewNavigator from '../navigators/OrderSubViewNavigator'
 import OrderPageIndicator from '../components/OrderPageIndicator'
 import DatabaseUtil from '../database/DatabaseUtil'
 import HandleBackButton from '../components/HandleBackButton'
+import OrderUtil from '../utils/OrderUtil';
 
 class OrderScreen extends Component {
     state = {
@@ -46,8 +47,8 @@ class OrderScreen extends Component {
             this.setState({ currentScreenIndex: this.state.currentScreenIndex + 1 },
                 () => {
                     if (this.state.currentScreenIndex < this.screens.length) {
+                        this.props.navigation.navigate(this.screens[this.state.currentScreenIndex].name);
                         this.activeNextIndex();
-                        this.props.navigation.push(this.screens[this.state.currentScreenIndex].name);
                     }
                     else {
                         // const resetAction = StackActions.reset({
@@ -67,14 +68,11 @@ class OrderScreen extends Component {
     _backFABPressed = () => {
         this.setState({ currentScreenIndex: this.state.currentScreenIndex - 1 },
             () => {
-                if (this.state.currentScreenIndex > -1) {
-                    this.activePrevIndex();
-                }
-                else {
-                    DatabaseUtil.clearOrder();
-                }
+                this.props.navigation.goBack(null);
 
-                this.props.navigation.goBack(null)
+                if (this.state.currentScreenIndex > -1) this.activePrevIndex();
+                else new OrderUtil().clearOrder();
+
             });
     }
 

@@ -8,6 +8,7 @@ import { List, Divider, Avatar, Button, Card, Title, Paragraph, FAB, DefaultThem
 
 import NetworkUtil from '../network/NetworkUtil'
 import DatabaseUtil from '../database/DatabaseUtil'
+import UserUtil from "../utils/UserUtil";
 
 class OrderReciepeScreen extends Component {
        
@@ -15,6 +16,7 @@ class OrderReciepeScreen extends Component {
         super(props);
 
         this.totalCost = 0;
+        this.userUtil = new UserUtil();
 
         this.beforeNextFABPressed = this.beforeNextFABPressed.bind(this);
     }
@@ -30,8 +32,8 @@ class OrderReciepeScreen extends Component {
     
     render() {
         const { driver, laundry } = DatabaseUtil.data.order;
-        const driverAvatarSource = {uri: NetworkUtil.getAvatarUri(driver.avatar)};
-        const laundryAvatarSource = {uri: NetworkUtil.getAvatarUri(laundry.avatar)};
+        const driverAvatarSource = this.userUtil.getAvatarUri(driver.avatar);
+        const laundryAvatarSource = this.userUtil.getAvatarUri(laundry.avatar);
         const primaryColor = DefaultTheme.colors.primary;
 
         const usingAppCost = 0.49;
@@ -130,7 +132,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         // alignItems: 'center',
-        justifyContent: 'center',
+        // justifyContent: 'center',
+        marginTop: 100,
         paddingLeft: 10,
     },
     farRightside: {

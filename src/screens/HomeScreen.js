@@ -15,7 +15,8 @@ import { withNavigationFocus } from 'react-navigation';
 import OrderListItem from '../components/OrderListItem'
 import HandleBackButton from '../components/HandleBackButton'
 import DatabaseUtil from "../database/DatabaseUtil";
-import NetworkUtil from "../network/NetworkUtil";
+import OrderUtil from "../utils/OrderUtil";
+
 
 class HomeScreen extends Component {
     constructor() {
@@ -30,51 +31,44 @@ class HomeScreen extends Component {
             addFABVisible: false,
         };
 
+        this.orderListPrevOffsetY = 0;
+
         DatabaseUtil.reloadHistoryFunc = this._reloadFABPressed;
+        this.orderUtil = new OrderUtil();
 
         this._onItemPressed = this._onItemPressed.bind(this);
 
     }
 
     _getOrderIfExists = () => {
-        NetworkUtil.getOrderByUserId(
-            DatabaseUtil.data.setting,
-            (response) => {
-                if (response.id > 0) {
-                    DatabaseUtil.setOrderFromResponse(response);
-                    this.props.navigation.navigate('ServiceProcess');
-                }
-                else this._reloadHistory();
-            },
-            () => {
+        this.orderUtil.getOrderByUserId(
+            () => this.props.navigation.navigate('ServiceProcess'),
+            this._reloadHistory,
+            () => 
                 this.setState({
                     reloadFABVisible: true,
                     loading: false,
                     addFABVisible: false,
-                });
-            });
+                })
+        );
     }
 
     _reloadHistory = () => {
-        NetworkUtil.getAllClothingsOfOrdersByUserId(
-            DatabaseUtil.data.setting,
-            () => {
-                DatabaseUtil.setHistoryFromResponse(response);
-
+        this.orderUtil.getAllClothingsOfOrdersByUserId(
+            history => 
                 this.setState({
-                    history: DatabaseUtil.data.history,
+                    history: history,
                     loading: false,
                     reloadFABVisible: true,
                     addFABVisible: true,
-                });
-            },
-            () => {
+                }),
+            () => 
                 this.setState({
                     loading: false,
                     reloadFABVisible: true,
                     addFABVisible: false,
-                });
-            });
+                })
+        );
     }
 
     componentDidMount = () => {
@@ -88,33 +82,34 @@ class HomeScreen extends Component {
                 addFABVisible: true,
             });
         }
-       
-
-       /*  
-        
-
-        Permissions.check('location', { type: 'always' }).then(response => {
-            console.log(response);
-        }); */
-
-        /* GeolocationUtil.getUserCurrentLocation()
-            .then((location) => {
-                console.log(location);
-            },
-            () => {
-                console.log(error);
-            }); */
-
-            
     }
 
-    // _showModal = () => this.setState({ visible: true });
-    // _hideModal = () => this.setState({ visible: false });
 
     _onItemPressed = (index) => {
-        console.log(index);
-        DatabaseUtil.data.order.clothings = this.state.history[index];
+        this.orderUtil.setClothings(this.state.history[index])
         this.props.navigation.navigate('Order');
+    }
+
+    _onOrderListScroll = (event) => {
+        let currentOffsetY = event.nativeEvent.contentOffset.y;
+        let downOrUp = (currentOffsetY < this.orderListPrevOffsetY);
+
+        this.setState({
+            reloadFABVisible: downOrUp,
+            addFABVisible: downOrUp,
+        });
+
+        this.orderListPrevOffsetY = currentOffsetY;
+    }
+    
+    _reloadFABPressed = () => {
+        this.setState({
+            // history: [],
+            loading: true,
+            reloadFABVisible: false,
+            addFABVisible: false,
+        },
+            this._reloadHistory);
     }
 
     _renderEachOrderListItem = ({ item, index }) => {
@@ -156,19 +151,11 @@ class HomeScreen extends Component {
                 renderItem={this._renderEachOrderListItem}
                 ListEmptyComponent={this._renderIfFlatlistIsEmpty}
                 keyExtractor={(item, index) => index + '_history'}
+                onScroll={this._onOrderListScroll}
+                scrollEventThrottle={16}
             />
         );
 
-    }
-
-    _reloadFABPressed = () => {
-        this.setState({
-            // history: [],
-            loading: true,
-            reloadFABVisible: false,
-            addFABVisible: false,
-        },
-            this._reloadHistory);
     }
 
     _renderAddFAB = () => {

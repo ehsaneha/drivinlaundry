@@ -94,6 +94,7 @@ class DatabaseUtil {
 
     static setSettingFromResponse = ({ id, phone, name, password, avatar, type, cost, online }) => {
         DatabaseUtil.data.setting = { id, phone, name, password, avatar, userType: type, cost, online };
+        DatabaseUtil.storeSetting();
     }
 
     static setHistoryFromResponse = (clothings) => {

@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { 
+import {
     View,
     Text,
     StyleSheet,
@@ -16,6 +16,7 @@ import NetworkUtil from '../network/NetworkUtil'
 import DatabaseUtil from '../database/DatabaseUtil'
 import GeolocationUtil from '../geolocation/GeolocationUtil'
 import MarkerIcon from '../components/MarkerIcon'
+import UserUtil from "../utils/UserUtil";
 
 class LaundrySelectionScreen extends Component {
 
@@ -30,6 +31,7 @@ class LaundrySelectionScreen extends Component {
         };
 
         this.itemsDeActivateFuncs = {};
+        this.userUtil = new UserUtil();
 
         this.beforeNextFABPressed = this.beforeNextFABPressed.bind(this);
         this.onItemPressed = this.onItemPressed.bind(this);
@@ -37,24 +39,20 @@ class LaundrySelectionScreen extends Component {
     }
 
     _reloadLaundries = () => {
-        const { latitude, longitude } = DatabaseUtil.data.order.location;
-        NetworkUtil.getLaundries(latitude, longitude)
-            .then((response) => {
+        this.userUtil.getLaundries(
+            response =>
                 this.setState({
                     laundriesList: response,
                     reloadFABVisible: true,
                     loading: false,
                     selectedIndex: 0,
-                });
-
-            })
-            .catch((error) => {
-                ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
+                }),
+            () =>
                 this.setState({
                     loading: false,
                     reloadFABVisible: true,
-                });
-            });
+                })
+        );
     }
 
     componentDidMount = () => {
@@ -63,46 +61,45 @@ class LaundrySelectionScreen extends Component {
     }
 
     beforeNextFABPressed = () => {
-        const {laundriesList, selectedIndex} = this.state;
-        if(laundriesList.length == 0) {
+        const { laundriesList, selectedIndex } = this.state;
+        if (laundriesList.length == 0) {
             ToastAndroid.show('You should choose at least one laundry!', ToastAndroid.LONG);
             return false;
         }
 
         DatabaseUtil.data.order.laundry = laundriesList[selectedIndex];
 
-        const {cost} = laundriesList[selectedIndex];
+        const { cost } = laundriesList[selectedIndex];
         DatabaseUtil.data.order.laundry.cost = cost == '' ? '5' : cost;
 
         return true;
     }
 
     onItemPressed = (index) => {
-        const {selectedIndex} = this.state;
-        if (selectedIndex === index)
-            return;
+        const { selectedIndex } = this.state;
+        if (selectedIndex === index) return;
 
         this.itemsDeActivateFuncs[selectedIndex].deActivate();
-        this.setState({selectedIndex: index});
+        this.setState({ selectedIndex: index });
     }
 
     _reloadFABPressed = () => {
         this.setState({
             reloadFABVisible: false,
             loading: true,
-        }, 
-        this._reloadLaundries);
+        },
+            this._reloadLaundries);
     }
 
     _renderEachItem = ({ item, index }) => {
         return (
             <ClientsListItem
                 itemInfo={item}
-                iconName={'local-taxi'}
+                iconName={'local-laundry-service'}
                 onRef={ref => this.itemsDeActivateFuncs[index] = ref}
                 onPressItem={this.onItemPressed}
                 active={this.state.selectedIndex === index}
-                avatarSource={{ uri: NetworkUtil.getAvatarUri(item.avatar), cache: 'reload' }}
+                avatarSource={this.userUtil.getAvatarUri(item.avatar)}
                 avatar={item.avatar}
                 index={index}
             />
@@ -120,7 +117,7 @@ class LaundrySelectionScreen extends Component {
     }
 
     _renderFlatListOrActivityIndicator = () => {
-        const {loading, laundriesList} = this.state;
+        const { loading, laundriesList } = this.state;
         return loading ?
             (
                 <View style={{ position: "absolute", marginTop: 90, left: 0, right: 0, alignItems: "center" }}>
@@ -160,7 +157,7 @@ class LaundrySelectionScreen extends Component {
     }
 
     _renderMarkers = () => {
-        const {laundriesList, selectedIndex} = this.state;
+        const { laundriesList, selectedIndex } = this.state;
 
         return laundriesList.map((each, index) => {
             if (index < 3) {
@@ -172,7 +169,7 @@ class LaundrySelectionScreen extends Component {
                             longitude: parseFloat(each.longitude),
                         }}
                     >
-                        <MarkerIcon iconName='local-laundry-service' active={selectedIndex === index}/>
+                        <MarkerIcon iconName='local-laundry-service' active={selectedIndex === index} />
                     </Marker>
                 );
             }
@@ -209,7 +206,7 @@ class LaundrySelectionScreen extends Component {
         );
     }
 }
-export {LaundrySelectionScreen};
+export { LaundrySelectionScreen };
 
 const styles = StyleSheet.create({
     container: {
@@ -223,9 +220,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     },
     backgroundImage: {
-      flex: 1,
-      alignSelf: 'stretch',
-      width: null,
+        flex: 1,
+        alignSelf: 'stretch',
+        width: null,
     },
     reloadFAB: {
         position: 'absolute',

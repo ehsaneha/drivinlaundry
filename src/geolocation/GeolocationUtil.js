@@ -20,32 +20,33 @@ class GeolocationUtil {
         );
     } */
 
-    static getCurrentPosition = (onSuccess, onFail) => {
+    getCurrentPosition = (onSuccess, onFail) => {
         Geolocation.getCurrentPosition(
             ({coords}) => {
                 if(coords.latitude === 0 && coords.longitude === 0) {
                     
-                    AlertSuccessOrExit.alert(
+                    new AlertSuccessOrExit().alert(
                         'Location Access Alert',
-                        'Please turn on your gps. this app can not continue working without that!',
-                        GeolocationUtil.getCurrentPosition
+                        'Please turn on your GPS. this app can not continue working without it!',
+                        () => this.getCurrentPosition(onSuccess, onFail)
                     );
 
                 }
                 else {
-                    GeolocationUtil.userLocation = {
-                        latitude: coords.latitude,
-                        longitude: coords.longitude,
-                        latitudeDelta: 0.045,
-                        longitudeDelta: 0.045,
-                    };
+                    // GeolocationUtil.userLocation = {
+                    //     latitude: coords.latitude,
+                    //     longitude: coords.longitude,
+                    //     latitudeDelta: 0.045,
+                    //     longitudeDelta: 0.045,
+                    // };
 
-                    onSuccess(GeolocationUtil.userLocation)
+
+                    onSuccess(coords);
 
                 }
 
             },
-            (error) => {
+            error => {
                 console.log(error.code, error.message);
                 ToastAndroid.show('Location Problem!', ToastAndroid.LONG);
             },
@@ -57,7 +58,7 @@ class GeolocationUtil {
         );
     }
 /* 
-    static getUserCurrentLocation = () => {
+    getUserCurrentLocation = () => {
         return Permissions.check('location', { type: 'always' })
             .then(checkResponse => {
 
@@ -79,7 +80,7 @@ class GeolocationUtil {
             });
     } */
 
-    static requestLocationPermission = (onSuccess, onFail) => {
+    requestLocationPermission = (onSuccess, onFail) => {
         Permissions.request('location')
             .then(response => {
                 
@@ -90,10 +91,10 @@ class GeolocationUtil {
                 }
 
 
-                AlertSuccessOrExit.alert(
+                new AlertSuccessOrExit().alert(
                     'Location Permission Alert',
                     'Please give us locatin permission. this app can not continue working without that!',
-                    GeolocationUtil.requestLocationPermission
+                    () => this.requestLocationPermission(onSuccess, onFail)
                 );
 
 
@@ -101,7 +102,7 @@ class GeolocationUtil {
             });
     }
 
-    static getLocationPermission = (onSuccess, onFail) => {
+    getLocationPermission = (onSuccess, onFail) => {
         if(GeolocationUtil.locationPermission) {
             onSuccess();
             return;
@@ -116,19 +117,21 @@ class GeolocationUtil {
                     return;
                 }
 
-                GeolocationUtil.requestLocationPermission(GeolocationUtil.getLocationPermission);                
+                this.requestLocationPermission(
+                    () => this.getLocationPermission(onSuccess, onFail)
+                );                
             });
     }
 
     
-    static getLocation = (onSuccess, onFail) => {
-        if(GeolocationUtil.userLocation) {
-            onSuccess(GeolocationUtil.userLocation);
-            return;
-        }
+    getLocation = (onSuccess, onFail) => {
+        // if(GeolocationUtil.userLocation) {
+        //     onSuccess(GeolocationUtil.userLocation);
+        //     return;
+        // }
 
-        GeolocationUtil.getLocationPermission(
-            () => GeolocationUtil.getCurrentPosition(onSuccess)
+        this.getLocationPermission(
+            () => this.getCurrentPosition(onSuccess)
         );
     }
 

@@ -11,8 +11,6 @@ import {
 import { Button, TextInput, DefaultTheme, ActivityIndicator } from 'react-native-paper';
 import { NavigationEvents } from 'react-navigation';
 
-import NetworkUtil from '../network/NetworkUtil'
-import DatabaseUtil from '../database/DatabaseUtil'
 import HandleBackButton from '../components/HandleBackButton'
 // import { TouchableOpacity } from "react-native-gesture-handler";
 import UserUtil from '../utils/UserUtil'

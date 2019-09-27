@@ -15,20 +15,25 @@ import { NavigationActions, StackActions } from 'react-navigation'
 import NetworkUtil from '../network/NetworkUtil'
 import DatabaseUtil from '../database/DatabaseUtil'
 import LogoutIcon from '../components/LogoutIcon'
+import UserUtil from '../utils/UserUtil'
+import OrderUtil from "../utils/OrderUtil";
 
 class SettingsScreen extends Component {
 
     constructor(props) {
         super(props);
 
+        this.userUtil = new UserUtil();
+
         const { id, name, phone, password, avatar, cost, userType } = DatabaseUtil.data.setting;
         this.state = {
             id,
-            avatarSource: { uri: NetworkUtil.getAvatarUri(avatar), cache: 'reload' },
+            avatarSource: this.userUtil.getAvatarUri(avatar),
             nameText: name,
             phoneText: phone,
             passwordText: password,
             costText: cost + '',
+            userType,
             backLoading: false,
             imgLoading: false,
         };
@@ -44,40 +49,19 @@ class SettingsScreen extends Component {
                 backLoading: true,
             }, () => {
 
-                NetworkUtil.updateUser(this.state)
-                    .then((response) => {
-                        console.log(response);
-                        if(response.id === -1) {
-                            ToastAndroid.show('This Phone number is already registered!', ToastAndroid.LONG);
-                            this.setState({
-                                backLoading: false,
-                            });
-                        }
-                        else if(response.id > 0) {
-                            DatabaseUtil.setSettingFromResponse(response);
-                            DatabaseUtil.storeSetting();
-                            this.props.navigation.goBack(null);
-                        }
-                        else {
-                            ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
-                            this.setState({
-                                backLoading: false,
-                            });
-                        }
-
-                    })
-                    .catch((error) => {
-                        ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
-                        this.setState({
-                            backLoading: false,
-                        });
-                    });
+                this.userUtil.updateUser(
+                    this.state,
+                    () => this.props.navigation.goBack(null),
+                    () => this.setState({ backLoading: false, }),
+                );
 
             });
 
         }
         else this.props.navigation.goBack(null)
     }
+    
+    _cancelPressed = () => this.props.navigation.goBack(null)
 
     _callCamera = () => {
 
@@ -110,19 +94,15 @@ class SettingsScreen extends Component {
                     imgLoading: true,
                 }, () => {
 
-                    NetworkUtil.uploadImage(DatabaseUtil.data.setting, response)
-                        .then((avatar) => {
-                            DatabaseUtil.data.setting.avatar = avatar;
-                            DatabaseUtil.storeSetting();
-
+                    this.userUtil.uploadImage(
+                        response,
+                        avatarSource => 
                             this.setState({
-                                avatarSource: { uri: NetworkUtil.getAvatarUri(avatar), cache: 'reload' },
+                                avatarSource,
                                 imgLoading: false,
-                            });
-                        })
-                        .catch((error) => {
-                            ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
-                        });
+                            }),
+                        () => {}
+                    );
 
                 });
             }
@@ -133,15 +113,14 @@ class SettingsScreen extends Component {
 
     _SignOutButtonPresssed = () => {
         clearTimeout(NetworkUtil.serviceProcessTimeout);
-        DatabaseUtil.clearOrder();
-        DatabaseUtil.clearSetting()
-            .then(() => { 
-                const resetAction = StackActions.reset({
-                    index: 0,
-                    actions: [NavigationActions.navigate({ routeName: 'SignIn' })],
-                });
-                this.props.navigation.dispatch(resetAction);
-            });
+        new OrderUtil().clearOrder();
+        this.userUtil.clearSetting();
+
+        const resetAction = StackActions.reset({
+            index: 0,
+            actions: [NavigationActions.navigate({ routeName: 'SignIn' })],
+        });
+        this.props.navigation.dispatch(resetAction);
     }
 
 
@@ -151,12 +130,12 @@ class SettingsScreen extends Component {
                 <ActivityIndicator
                     animating={true}
                     color={'white'}
-                    style={{marginLeft: 25}}
+                    style={{ marginRight: 25 }}
                 />
             ) :
             (
                 <Appbar.Action 
-                    icon="arrow-back" 
+                    icon="check" 
                     onPress={this._backPressed} 
                 />
             );
@@ -192,7 +171,6 @@ class SettingsScreen extends Component {
 
     _renderAvatar = () => {
         const {avatar} = DatabaseUtil.data.setting;
-        console.log(avatar);
         return avatar == 'avatar.jpg' || avatar == 'avatar.jpeg' ?
         (
             <Avatar.Icon size={160} icon={'person'} />
@@ -213,13 +191,18 @@ class SettingsScreen extends Component {
 
                 <Appbar.Header>
 
-                    {this._renderButtonOrActivityIndicator()}
-                    
+                    <Appbar.Action 
+                        icon="close" 
+                        onPress={this._cancelPressed} 
+                    />
+
                     <Appbar.Content
-                        titleStyle={{ textAlign: 'center', paddingRight: 15 }}
+                        titleStyle={{ textAlign: 'center' }}
                         title="Settings"
                     />
-                    <Appbar.Action />
+
+                    {this._renderButtonOrActivityIndicator()}
+
                 </Appbar.Header>
 
                 <View style={styles.selectImageSection}>

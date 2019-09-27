@@ -8,18 +8,33 @@ import {
 import { Avatar } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/dist/MaterialIcons';
 
-import NetworkUtil from '../network/NetworkUtil'
+import UserUtil from "../utils/UserUtil";
 
 class ServiceProcessCall extends Component {
 
     _onPress = () => {
-        const {onPress, phone} = this.props;
+        const { onPress, phone } = this.props;
         onPress(phone);
+    }
+
+
+
+    _renderAvatar = (avatar, avatarSource, iconName) => {
+        return avatar == 'avatar.jpg' || avatar == 'avatar.jpeg' ?
+            (
+                <Avatar.Icon icon={iconName} />
+            ) :
+            (
+                <Avatar.Image
+                    source={avatarSource}
+                    key={avatarSource.uri}
+                />
+            );
     }
 
     render() {
         const { style, iconName, avatar } = this.props;
-        const avatarSource = {uri: NetworkUtil.getAvatarUri(avatar)};
+        const avatarSource = new UserUtil().getAvatarUri(avatar);
 
         return (
             <View style={[{}, style]} >
@@ -30,13 +45,16 @@ class ServiceProcessCall extends Component {
                             <Icon name={'local-taxi'} size={40} color='white' />
                         )}
                     /> */}
-                    
-                    <Avatar.Image
+
+                    {/* <Avatar.Image
                         source={avatarSource}
                         key={avatarSource.uri}
-                    />
+                    /> */}
+
+                    {this._renderAvatar(avatar, avatarSource, iconName)}
+
                 </TouchableOpacity>
-                
+
                 <Avatar.Icon
                     style={{ position: 'absolute', left: -5, top: -5, borderWidth: 1, borderColor: 'white' }}
                     size={25}

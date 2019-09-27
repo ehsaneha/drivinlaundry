@@ -3,11 +3,11 @@ import {
     View,
     Text,
     StyleSheet,
-    FlatList
+    FlatList,
+    TouchableOpacity
 } from "react-native";
-import { Appbar, Avatar, Button, Card, Title, Paragraph, FAB } from 'react-native-paper';
+import { Avatar, Button, Card, DefaultTheme } from 'react-native-paper';
 
-import NetworkUtil from "../network/NetworkUtil";
 import OrderDetailsModelClothingListItem from '../components/OrderDetailsModelClothingListItem'
 
 class OrderListItem extends Component {
@@ -64,9 +64,13 @@ class OrderListItem extends Component {
                         keyExtractor={(item, index) => index + '_eachHistoryItemClothings'}
                     />
 
-                    <Button onPress={this._onPress} style={{alignSelf: 'center'}}>
+                    {/* <Button onPress={this._onPress} style={{alignSelf: 'center'}}>
                         Redo
-                    </Button>
+                    </Button> */}
+
+                    <TouchableOpacity onPress={this._onPress} style={{alignSelf: 'center'}}>
+                        <Avatar.Icon size={40} icon='arrow-forward' style={{backgroundColor: 'white'}} color={DefaultTheme.colors.primary}/>
+                    </TouchableOpacity>
 
                 </Card.Content>
             </Card>

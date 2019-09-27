@@ -27,7 +27,7 @@ class SplashScreen extends Component {
                     DatabaseUtil.getOrder()
                         .then((orderIsValid) => {
                             
-                            console.log(orderIsValid);
+                            // console.log(orderIsValid);
                             if(orderIsValid) {
                                 const {done_time} = DatabaseUtil.data.order;
                                 navigation.navigate(done_time === '' ? 'ServiceProcess' : 'Rating');

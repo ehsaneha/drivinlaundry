@@ -33,8 +33,8 @@ class LocationSelectionScreen extends Component {
             userLocation: null,
         };
         
-        this.latitude = this.state.locationsData[0].latitude;
-        this.longitude = this.state.locationsData[0].longitude;
+        // this.latitude = this.state.locationsData[0].latitude;
+        // this.longitude = this.state.locationsData[0].longitude;
         this.itemsDeActivateFuncs = {};
         this.activeIndex = 0;
 
@@ -42,6 +42,7 @@ class LocationSelectionScreen extends Component {
             latitude: 0,
             longitude: 0,
         }
+
 
         this.beforeNextFABPressed = this.beforeNextFABPressed.bind(this);
         this.onItemPressed = this.onItemPressed.bind(this);
@@ -54,38 +55,18 @@ class LocationSelectionScreen extends Component {
     }
     
     _getLocation = () => {
-        GeolocationUtil.checkLocationPermission()
-            .then(isAutherized => {
+        new GeolocationUtil().getLocation(
+            ({latitude, longitude}) => {
+                console.log({latitude, longitude});
 
-                if (isAutherized) {
-                    GeolocationUtil.getLocation(
-                        ({coords}) => {
-                            console.log(coords);
+                // this.setState({
+                //     userLocation: coords,
+                // });
 
-                            GeolocationUtil.userLocation = {
-                                latitude: coords.latitude,
-                                longitude: coords.longitude,
-                                latitudeDelta: 0.045,
-                                longitudeDelta: 0.045,
-                            };
+                this.location = { latitude, longitude, };
+            }
+        );
 
-                            this.setState({
-                                userLocation: GeolocationUtil.userLocation,
-                            });
-
-                            this.location = {
-                                latitude: coords.latitude,
-                                longitude: coords.longitude,
-                            };
-                        },
-                        (error) => {
-                            console.log(error.code, error.message);
-                            ToastAndroid.show('Location Problem!', ToastAndroid.LONG);
-                        }
-                    );
-                }
-                else ToastAndroid.show('Location Permission Problem!', ToastAndroid.LONG);
-            });
     }
     
     beforeNextFABPressed = () => {
@@ -93,20 +74,20 @@ class LocationSelectionScreen extends Component {
         // DatabaseUtil.data.order.location.longitude = this.longitude;
         DatabaseUtil.data.order.location = this.location;
 
-        DatabaseUtil.data.setting.latitude = this.location.latitude;
-        DatabaseUtil.data.setting.longitude = this.location.longitude;
+        // DatabaseUtil.data.setting.latitude = this.location.latitude;
+        // DatabaseUtil.data.setting.longitude = this.location.longitude;
         return true;
     }
 
-    onItemPressed = (latitude, longitude, key) => {
-        if(this.activeIndex === key) 
+    onItemPressed = (latitude, longitude, index) => {
+        if(this.activeIndex === index) 
             return;
 
-        this.latitude = latitude;
-        this.longitude = longitude;
+        // this.latitude = latitude;
+        // this.longitude = longitude;
 
         this.itemsDeActivateFuncs[this.activeIndex].deActivate();
-        this.activeIndex = key;
+        this.activeIndex = index;
     }
 
     _renderEachItem = ({ item }) => {
@@ -121,11 +102,8 @@ class LocationSelectionScreen extends Component {
         );
     }
 
-    _onRegionChange(region) {
-        this.location = {
-            latitude: region.latitude,
-            longitude: region.longitude,
-        };
+    _onRegionChange({latitude, longitude}) {
+        this.location = { latitude, longitude, };
     }
 
     render() {
@@ -144,7 +122,7 @@ class LocationSelectionScreen extends Component {
                     showsUserLocation={true}
                     showsCompass={true}
                     rotateEnabled={false}
-                    initialRegion={userLocation}
+                    initialRegion={this.location}
                     onRegionChange={this._onRegionChange}
 
                 /> */}

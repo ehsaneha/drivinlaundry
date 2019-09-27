@@ -9,10 +9,11 @@ import {
 import { Appbar, Avatar, Button, Card, Title, Paragraph, FAB, DefaultTheme } from 'react-native-paper';
 import { AirbnbRating } from 'react-native-ratings';
 import Icon from 'react-native-vector-icons/dist/MaterialIcons';
+import { NavigationActions, StackActions } from 'react-navigation'
 
 import HandleBackButton from '../components/HandleBackButton'
-import NetworkUtil from '../network/NetworkUtil'
 import DatabaseUtil from '../database/DatabaseUtil'
+import UserUtil from "../utils/UserUtil";
 
 class RatingScreen extends Component {
 
@@ -27,42 +28,55 @@ class RatingScreen extends Component {
         this.ratings = [3, 3];
         // this.driverRating = 3;
         // this.laundryRating = 3;
+        this.UserUtil = new UserUtil();
 
         this._FABPressed = this._FABPressed.bind(this);
 
     }
 
     _FABPressed = () => {
-        const { driver, laundry } = DatabaseUtil.data.order;
 
-        this.setState((prevState) => {
-            state = { ...prevState };
-            state.fabVisible = false;
-            state.loading = true;
-            return state;
+        this.setState({
+            fabVisible: false,
+            loading: true,
         }, () => {
 
-            NetworkUtil.updateUserRating(driver.id, laundry.id, this.ratings[0], this.ratings[1])
-                .then((response) => {
-                    console.log(response);
-
-                    DatabaseUtil.clearOrder();
-                    this.props.navigation.navigate('Home');
-                    DatabaseUtil.reloadHistoryFunc();
-                })
-                .catch((error) => {
-                    console.log(error);
-                    ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
-                });
+            this.UserUtil.updateUserRating(
+                this.ratings[0], 
+                this.ratings[1],
+                () => {
+                    // this.props.navigation.navigate('Home');
+                    const resetAction = StackActions.reset({
+                        index: 0,
+                        actions: [NavigationActions.navigate({ routeName: 'Home' })],
+                    });
+                    this.props.navigation.dispatch(resetAction);
+                },
+                () => {}
+            );
 
         });
 
     }
 
+    _renderAvatar = (avatar, avatarSource, iconName) => {
+        return avatar == 'avatar.jpg' || avatar == 'avatar.jpeg' ?
+        (
+            <Avatar.Icon icon={iconName} />
+        ) :
+        (
+            <Avatar.Image
+                source={avatarSource}
+                key={avatarSource.uri}
+            />
+        );
+    }
+
+
     _renderRatingItems = () => {
         const { driver, laundry } = DatabaseUtil.data.order;
-        const driverAvatarSource = { uri: NetworkUtil.getAvatarUri(driver.avatar) };
-        const laundryAvatarSource = { uri: NetworkUtil.getAvatarUri(laundry.avatar) };
+        const driverAvatarSource = this.UserUtil.getAvatarUri(driver.avatar);
+        const laundryAvatarSource = this.UserUtil.getAvatarUri(laundry.avatar);
         let users = [
             {value: driver, avatarSource: driverAvatarSource, iconName: 'local-taxi'}, 
             {value: laundry, avatarSource: laundryAvatarSource, iconName: 'local-laundry-service'}
@@ -75,11 +89,12 @@ class RatingScreen extends Component {
                     style={{ flexDirection: 'row', marginTop: (index === 1 ? 10 : 0) }}>
 
                     <View>
-                        <Avatar.Image
+                        {/* <Avatar.Image
                             source={each.avatarSource}
                             key={each.avatarSource.uri}
-                        />
-
+                        /> */}
+                        {this._renderAvatar(each.value.avatar, each.avatarSource, each.iconName)}
+                        
                         <Avatar.Icon
                             style={{ position: 'absolute', left: -5, top: -5, borderWidth: 1, borderColor: 'white' }}
                             size={25}
@@ -139,7 +154,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         // alignItems: 'center',
-        justifyContent: 'center',
+        // justifyContent: 'center',
+        marginTop: 150,
         padding: 10,
     },
     fab: {

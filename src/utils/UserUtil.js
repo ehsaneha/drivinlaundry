@@ -7,216 +7,103 @@ import NetworkUtil from '../network/NetworkUtil'
 import DatabaseUtil from '../database/DatabaseUtil'
 
 class UserUtil {
-  
-    static getDrivers = (latitude, longitude, onSuccess, onFail) => {
-        NetworkUtil.checkInternetConnection(
-            () => {
-                NetworkUtil.get(NetworkUtil.apiUrl + `getDrivers/${latitude}/${longitude}`)
-                    .then(response => {
-                        onSuccess(response);
-                    })
-                    .catch(error => {
-                        console.log(error);
-                        ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
-                        onFail(error);
-                    });
-            });
+
+    getDrivers = (onSuccess, onFail) => {
+        new NetworkUtil().getDrivers(
+            DatabaseUtil.data.order.location,
+            onSuccess,
+            onFail
+        );
     }
 
-    static getLaundries = (latitude, longitude, onSuccess, onFail) => {
-        NetworkUtil.checkInternetConnection(
-            () => {
-                NetworkUtil.get(NetworkUtil.apiUrl + `getLaundries/${latitude}/${longitude}`)
-                    .then(response => {
-                        onSuccess(response);
-                    })
-                    .catch(error => {
-                        console.log(error);
-                        ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
-                        onFail(error);
-                    });
-            });
+    getLaundries = (onSuccess, onFail) => {
+        new NetworkUtil().getLaundries(
+            DatabaseUtil.data.order.location,
+            onSuccess,
+            onFail
+        );
     }
 
-    static createOrder = ({ start_time, driver, laundry, user, clothings, cost }, onSuccess, onFail ) => {
-        NetworkUtil.checkInternetConnection(
-            () => {
-                NetworkUtil.postPut(
-                    'POST',
-                    NetworkUtil.apiUrl + 'createOrder',
-                    {
-                        start_time,
-                        cost,
-                        users: [driver.id, laundry.id, user.id],
-                        clothings: JSON.stringify(clothings),
+    clearSetting = () => DatabaseUtil.clearSetting()
+
+    uploadImage = (image, onSuccess, onFail) => {
+        let networkUtil = new NetworkUtil();
+        networkUtil.uploadImage(
+            DatabaseUtil.data.setting,
+            image,
+            avatar => {
+                DatabaseUtil.data.setting.avatar = avatar;
+                DatabaseUtil.storeSetting();
+
+                onSuccess({ uri: networkUtil.getAvatarUri(avatar), cache: 'reload' });
+            },
+            onFail
+        );
+    }
+
+    getAvatarUri = (avatar) => {
+        return { uri: new NetworkUtil().getAvatarUri(avatar), cache: 'reload' }
+    }
+
+    createUser = ({ nameText, phoneText, passwordText, confirmPasswordText, userType, cost, termsOfServiceChecked }, onSuccess, onFail) => {
+        if (this.validateSignUpInputs(phoneText, nameText, passwordText, confirmPasswordText, termsOfServiceChecked)) {
+            new NetworkUtil().createUser(
+                { nameText, phoneText, passwordText, userType, cost },
+                response => {
+                    if (response.id > -1) {
+                        DatabaseUtil.setSettingFromResponse(response);
+                        onSuccess(DatabaseUtil.data.setting.userType);
                     }
-                )
-                    .then(response => {
-                        onSuccess(response);
-                    })
-                    .catch(error => {
-                        console.log(error);
-                        ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
-                        onFail(error);
-                    });
-            });
-    }
-
-    static updateOrder = ({ id, start_time, cost, car_laundry_arrival_time, laundry_done_time, car_laundry_gone_time, done_time }, onSuccess, onFail ) => {
-        NetworkUtil.checkInternetConnection(
-            () => {
-                NetworkUtil.postPut(
-                    'PUT',
-                    NetworkUtil.apiUrl + 'updateOrder/' + id,
-                    {
-                        start_time,
-                        cost,
-                        car_laundry_arrival_time,
-                        laundry_done_time,
-                        car_laundry_gone_time,
-                        done_time,
+                    else {
+                        ToastAndroid.show('This Phone number is already registered!', ToastAndroid.LONG);
+                        onFail();
                     }
-                )
-                    .then(response => {
-                        onSuccess(response);
-                    })
-                    .catch(error => {
-                        console.log(error);
-                        ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
-                        onFail(error);
-                    });
-            });
+                },
+                onFail
+            );
+        }
+        else onFail();
     }
 
-    static getOrderById = ({ id }, onSuccess, onFail ) => {
-        NetworkUtil.checkInternetConnection(
-            () => {
-                NetworkUtil.get(NetworkUtil.apiUrl + 'getOrderById/' + id)
-                    .then(response => {
-                        onSuccess(response);
-                    })
-                    .catch(error => {
-                        console.log(error);
-                        ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
-                        onFail(error);
-                    });
-            });
-    }
-
-    static getOrderByUserId = ({ id }, onSuccess, onFail ) => {
-        NetworkUtil.checkInternetConnection(
-            () => {
-                NetworkUtil.get(NetworkUtil.apiUrl + 'getOrderByUserId/' + id)
-                    .then(response => {
-                        onSuccess(response);
-                    })
-                    .catch(error => {
-                        console.log(error);
-                        ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
-                        onFail(error);
-                    });
-            });
-    }
-
-    static uploadImage = ({ id }, image, onSuccess, onFail) => {
-        NetworkUtil.checkInternetConnection(
-            () => {
-                NetworkUtil.postPut(
-                    'POST',
-                    NetworkUtil.apiUrl + 'uploadImage/' + id,
-                    {
-                        image: image.data,//'data:image/jpeg;base64,' + 
+    updateUser = ({ id, phoneText, nameText, passwordText, costText, userType }, onSuccess, onFail) => {
+        if (this.validateSettingInputs(phoneText, nameText, passwordText, costText, userType)) {
+            new NetworkUtil().updateUser(
+                { id, phoneText, nameText, passwordText, costText },
+                response => {
+                    if (response.id === -1) {
+                        ToastAndroid.show('This Phone number is already registered!', ToastAndroid.LONG);
+                        onFail();
                     }
-                )
-                    .then(response => {
-                        onSuccess(response);
-                    })
-                    .catch(error => {
-                        console.log(error);
-                        ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
-                        onFail(error);
-                    });
-            });
-    }
-
-    static getAvatarUri = (avatar, onSuccess, onFail) => {
-        NetworkUtil.serverUrl + NetworkUtil.avatarUrl + avatar;
-    }
-
-    static createUser = ({ nameText, phoneText, passwordText, userType, cost }, onSuccess, onFail ) => {
-        NetworkUtil.checkInternetConnection(
-            () => {
-                NetworkUtil.postPut(
-                    'POST',
-                    NetworkUtil.apiUrl + 'createUser',
-                    {
-                        phone: phoneText,
-                        name: nameText,
-                        password: passwordText,
-                        userType,
-                        cost,
+                    else if (response.id > 0) {
+                        DatabaseUtil.setSettingFromResponse(response);
+                        onSuccess();
                     }
-                )
-                    .then(response => {
-                        onSuccess(response);
-                    })
-                    .catch(error => {
-                        console.log(error);
-                        ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
-                        onFail(error);
-                    });
-            });
+
+                },
+                onFail
+            );
+        }
+        else onFail();
     }
 
-    static updateUser = ({ id, phoneText, nameText, passwordText, costText }, onSuccess, onFail ) => {
-        NetworkUtil.checkInternetConnection(
-            () => {
-                NetworkUtil.postPut(
-                    'PUT',
-                    NetworkUtil.apiUrl + 'updateUser/' + id,
-                    {
-                        phone: phoneText,
-                        name: nameText,
-                        password: passwordText,
-                        cost: costText,
-                    }
-                )
-                    .then(response => {
-                        onSuccess(response);
-                    })
-                    .catch(error => {
-                        console.log(error);
-                        ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
-                        onFail(error);
-                    });
-            });
+    updateUserOnline = (online, onSuccess, onFail) => {
+        new NetworkUtil().updateUserOnline(
+            DatabaseUtil.data.setting, 
+            online,
+            online => {
+                DatabaseUtil.data.setting.online = online;
+
+                DatabaseUtil.storeSetting();
+                onSuccess(online);
+            },
+            onFail
+        );
     }
 
-    static updateUserOnline = ({ id }, online, onSuccess, onFail) => {
-        NetworkUtil.checkInternetConnection(
-            () => {
-                NetworkUtil.postPut(
-                    'PUT',
-                    NetworkUtil.apiUrl + 'updateUserOnline/' + id,
-                    {
-                        online,
-                    }
-                )
-                    .then(response => {
-                        onSuccess(response);
-                    })
-                    .catch(error => {
-                        console.log(error);
-                        ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
-                        onFail(error);
-                    });
-            });
-    }
+    validateSignInInputs = (phoneText, passwordText) => {
 
-    validateSignInInputs = ( phoneText, passwordText ) => {
-
-        if(phoneText === '' || passwordText === '') {
-            ToastAndroid.show('Your should enter phone and password!', ToastAndroid.SHORT);
+        if (phoneText === '' || passwordText === '') {
+            ToastAndroid.show('You should enter phone and password!', ToastAndroid.SHORT);
             return false;
         }
 
@@ -224,89 +111,82 @@ class UserUtil {
         return true;
     }
 
-    getUserByPhonePassword = ({ phoneText, passwordText }, onSuccess, onFail ) => {
-        
-        if(this.validateSignInInputs(phoneText, passwordText)) {
-            NetworkUtil.getUserByPhonePassword(
+    validateSignUpInputs = (phoneText, nameText, passwordText, confirmPasswordText, termsOfServiceChecked) => {
+
+        if (nameText === '' || phoneText === '' || passwordText === '' || confirmPasswordText === '') {
+            ToastAndroid.show('You should fill all the inputs!', ToastAndroid.SHORT);
+            return false;
+        }
+
+        if (passwordText !== confirmPasswordText) {
+            ToastAndroid.show('Password and confirm password is not the same!', ToastAndroid.LONG);
+            return false;
+        }
+
+        if(!termsOfServiceChecked) {
+            ToastAndroid.show('You should accept terms of service!', ToastAndroid.LONG);
+            return false;
+        }
+
+
+        return true;
+    }
+
+    validateSettingInputs = (phoneText, nameText, passwordText, costText, userType) => {
+
+        if (nameText === '' || phoneText === '' || passwordText === '' || (userType !== 1 && costText === '')) {
+            ToastAndroid.show('You should enter all the inputs!', ToastAndroid.SHORT);
+            return false;
+        }
+
+        return true;
+    }
+
+    getUserByPhonePassword = ({ phoneText, passwordText }, onSuccess, onFail) => {
+
+        if (this.validateSignInInputs(phoneText, passwordText)) {
+            new NetworkUtil().getUserByPhonePassword(
                 { phoneText, passwordText },
                 response => {
                     if (response.id > -1) {
                         DatabaseUtil.setSettingFromResponse(response);
-
-                        DatabaseUtil.storeSetting()
-                            .then(() => {
-                                const { userType } = DatabaseUtil.data.setting;
-                                onSuccess(userType);
-                            });
-
+                        onSuccess(DatabaseUtil.data.setting.userType);
                     }
                     else {
                         ToastAndroid.show('Your Phone or Password was not correct!', ToastAndroid.SHORT);
                         onFail();
                     }
-                }, onFail);
+                },
+                onFail
+            );
         }
         else onFail();
-        
+
     }
 
-    static getAllClothingsOfOrdersByUserId = ({ id }, onSuccess, onFail ) => {
-        NetworkUtil.checkInternetConnection(
-            () => {
-                NetworkUtil.get(NetworkUtil.apiUrl + `getAllClothingsOfOrdersByUserId/${id}`)
-                    .then(response => {
-                        onSuccess(response);
-                    })
-                    .catch(error => {
-                        console.log(error);
-                        ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
-                        onFail(error);
-                    });
-            });
+
+    updateUserRating = (driverRating, laundryRating, onSuccess, onFail) => {
+        const { driver, laundry } = DatabaseUtil.data.order;
+
+        new NetworkUtil().updateUserRating(
+            driver.id, laundry.id, driverRating, laundryRating,
+                () => {
+                    DatabaseUtil.clearOrder();
+                    onSuccess();
+                    DatabaseUtil.reloadHistoryFunc();
+                },
+                onFail
+            );
     }
 
-    static updateUserRating = (driverId, laundryId, driverRating, laundryRating, onSuccess, onFail) => {
-        NetworkUtil.checkInternetConnection(
-            () => {
-                NetworkUtil.postPut(
-                    'PUT',
-                    NetworkUtil.apiUrl + `updateUserRating/${driverId}/${laundryId}`,
-                    {
-                        driverRating,
-                        laundryRating,
-                    }
-                )
-                    .then(response => {
-                        onSuccess(response);
-                    })
-                    .catch(error => {
-                        console.log(error);
-                        ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
-                        onFail(error);
-                    });
-            });
-    }
-
-    static updateUserLocation = ({ id }, { latitude, longitude }, onSuccess, onFail ) => {
-        NetworkUtil.checkInternetConnection(
-            () => {
-                NetworkUtil.postPut(
-                    'PUT',
-                    NetworkUtil.apiUrl + `updateUserLocation/${id}`,
-                    {
-                        latitude,
-                        longitude,
-                    }
-                )
-                    .then(response => {
-                        onSuccess(response);
-                    })
-                    .catch(error => {
-                        console.log(error);
-                        ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
-                        onFail(error);
-                    });
-            });
+    updateUserLocation = (latitude, longitude, onSuccess, onFail) => {
+        new NetworkUtil().updateUserLocation(
+            DatabaseUtil.data.setting, 
+            latitude, 
+            longitude,
+            onSuccess,
+            onFail
+        );
     }
 
 

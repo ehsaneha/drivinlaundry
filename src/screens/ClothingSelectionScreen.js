@@ -4,7 +4,8 @@ import {
     Text,
     StyleSheet,
     ToastAndroid,
-    FlatList
+    FlatList,
+    Dimensions
 } from "react-native";
 
 
@@ -17,17 +18,23 @@ class ClothingSelectionScreen extends Component {
     constructor(props) {
         super(props);
 
-        this.clothings = {};
+        this.clothings = this.initClothings();
+
+        this._onItemChange = this._onItemChange.bind(this);
+        this.beforeNextFABPressed = this.beforeNextFABPressed.bind(this);
+    }
+
+    initClothings = () => {
+        let result = {};
 
         const {order} = DatabaseUtil.data;
         if(order.clothings.length > 0) {
             order.clothings.forEach(element => {
-                this.clothings[element.type] = element.count;
+                result[element.type] = element.count;
             });
         }
 
-        this._onItemChange = this._onItemChange.bind(this);
-        this.beforeNextFABPressed = this.beforeNextFABPressed.bind(this);
+        return result;
     }
 
     componentDidMount = () => {
@@ -68,7 +75,7 @@ class ClothingSelectionScreen extends Component {
         }
     }
 
-    _renderEachListItem = ({ item }) => {
+    _renderEachListItem = ({ item, index }) => {
         return (
             <ClothingListItem
                 itemInfo={item}
@@ -80,13 +87,14 @@ class ClothingSelectionScreen extends Component {
     }
 
     render() {
+        screenWidth = Math.round(Dimensions.get('window').width);
         return (
             <FlatList
-                style={{ flex: 1, paddingTop: 60 }}
+                style={{ flex: 1, marginTop: 60 }}
                 contentContainerStyle={{ alignItems: 'center', }}
                 data={this._generateListItemsData()}
                 renderItem={this._renderEachListItem}
-                numColumns={5}
+                numColumns={screenWidth < 400 ? 4 : 5}
                 keyExtractor={(item, index) => index + '_clothings'}
             />
         );

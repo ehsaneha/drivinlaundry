@@ -8,8 +8,7 @@ import {
 import { Button, ActivityIndicator, DefaultTheme } from 'react-native-paper';
 import { NavigationActions, StackActions } from 'react-navigation'
 
-import NetworkUtil from '../network/NetworkUtil'
-import DatabaseUtil from '../database/DatabaseUtil'
+import OrderUtil from "../utils/OrderUtil";
 
 class PaymentScreen extends Component {
 
@@ -29,35 +28,20 @@ class PaymentScreen extends Component {
             payLoading: true,
         });
 
-        DatabaseUtil.data.order.user = DatabaseUtil.data.setting;
-        const { setting, order } = DatabaseUtil.data;
-        NetworkUtil.createOrder(order)
-            .then((response) => {
-                console.log(response);
-                DatabaseUtil.setOrderFromResponse(response);
-                if (DatabaseUtil.orderHasChanged()) {
-
-                    DatabaseUtil.storeOrder();
-                    this.props.navigation.navigate('ServiceProcess');
-
-
-                    
-
-                    // const resetAction = StackActions.reset({
-                    //     index: 0,
-                    //     actions: [NavigationActions.navigate({ routeName: 'ServiceProcess' })],
-                    // });
-                    // this.props.navigation.dispatch(resetAction);
-
-
-                }
-            })
-            .catch((error) => {
-                ToastAndroid.show('Network Problem!', ToastAndroid.LONG);
+        new OrderUtil().createOrder(
+            () => {
+                    // this.props.navigation.navigate('ServiceProcess');
+                    const resetAction = StackActions.reset({
+                        index: 0,
+                        actions: [NavigationActions.navigate({ routeName: 'ServiceProcess' })],
+                    });
+                    this.props.navigation.dispatch(resetAction);
+            },
+            () =>
                 this.setState({
                     payLoading: false,
-                });
-            });
+                })
+        );
     }
 
     _renderPaypalButtonOrActivityIndicator = () => {
