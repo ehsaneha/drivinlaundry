@@ -16,54 +16,58 @@ class EachPageIndicator extends Component {
     constructor(props) {
         super(props)
 
-        state = {
-            active: 0,
-
+        this.state = {
+            active: this.props.active,
         };
 
-        this.activatedColor = '#fff'//'#ccc'
-        this.deActivatedColor = DefaultTheme.colors.primary;//'#555'
+        // this.activatedColor = '#fff'//'#ccc'
+        // this.deActivatedColor = DefaultTheme.colors.primary;//'#555'
 
-        if(props.active) {
-            this.backgroundColor = new Animated.Value(150);
-            this.color = this.activatedColor;
-        }
-        else {
-            this.backgroundColor = new Animated.Value(0);
-            this.color = this.deActivatedColor;
-        }
+        // if(props.active) {
+        //     // this.backgroundColor = new Animated.Value(150);
+        //     this.backgroundColor = this.deActivatedColor;
+        //     this.color = this.activatedColor;
+        // }
+        // else {
+        //     // this.backgroundColor = new Animated.Value(0);
+        //     this.backgroundColor = this.activatedColor;
+        //     this.color = this.deActivatedColor;
+        // }
 
         this._renderIcon = this._renderIcon.bind(this);
 
     }
 
 
-    componentDidMount() {
-        this.props.onRef(this);
+    // componentDidMount() {
+    //     this.props.onRef(this);
 
-    }
+    // }
 
-    componentWillUnmount() {
-        this.props.onRef(undefined)
-    }
+    // componentWillUnmount() {
+    //     this.props.onRef(undefined)
+    // }
 
     toggleActivate = () => {
-        if (this.color === this.activatedColor) {
-            Animated.timing(this.backgroundColor, {
-                toValue: 0,
-                duration: 1000,
-            }).start();
+        this.setState({ active: !this.state.active });
+        // if (this.color === this.activatedColor) {
+        //     // Animated.timing(this.backgroundColor, {
+        //     //     toValue: 0,
+        //     //     duration: 1000,
+        //     // }).start();
 
-            this.color = this.deActivatedColor;
-        }
-        else {
-            Animated.timing(this.backgroundColor, {
-                toValue: 150,
-                duration: 1000,
-            }).start();
+        //     this.color = this.activatedColor;
+        //     this.color = this.deActivatedColor;
+        // }
+        // else {
+        //     // Animated.timing(this.backgroundColor, {
+        //     //     toValue: 150,
+        //     //     duration: 1000,
+        //     // }).start();
 
-            this.color = this.activatedColor;
-        }
+        //     this.backgroundColor = this.deActivatedColor;
+        //     this.color = this.activatedColor;
+        // }
     }
 
     // deActivate = () => {
@@ -74,39 +78,49 @@ class EachPageIndicator extends Component {
     //     }).start();
     // }
 
-    _renderIcon = () => {
+    _renderIcon = (color) => {
         const { index, iconName } = this.props;
 
         return index === 0 ?
         (
             <TShirtIcon
+                color={color}
                 name={iconName}
                 size={27}
-                style={{
-                    color: this.color
-                }} 
+                // style={{
+                //     color,
+                // }} 
             />
         ) :
         (
             <Icon
+                color={color}
                 name={iconName}
                 size={30}
-                style={{
-                    color: this.color
-                }} 
+                // style={{
+                //     color,
+                // }} 
             />
         );
     }
 
     render() {
-        const backgroundColor = this.backgroundColor.interpolate({
-            inputRange: [0, 150],
-            outputRange: [this.activatedColor, this.deActivatedColor]
-        });
+        // const backgroundColor = this.backgroundColor.interpolate({
+        //     inputRange: [0, 150],
+        //     outputRange: [this.activatedColor, this.deActivatedColor]
+        // });
+
+        const {active, style} = this.props;
+
+        let activatedColor = '#fff'//'#ccc'
+        let deActivatedColor = DefaultTheme.colors.primary;
+
+        let color = active ? activatedColor : deActivatedColor;
+        let backgroundColor = active ? deActivatedColor : activatedColor;
 
         return (
-            <Animated.View style={[styles.icon, { backgroundColor, borderColor: this.deActivatedColor, }, this.props.style]}>
-                {this._renderIcon()}
+            <Animated.View style={[styles.icon, { backgroundColor, borderColor: deActivatedColor, }, style]}>
+                {this._renderIcon(color)}
             </Animated.View>
         );
     }

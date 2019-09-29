@@ -1,5 +1,5 @@
 
-import ToastAndroid from 'react-native';
+import {ToastAndroid} from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import Permissions from 'react-native-permissions';
 
@@ -48,7 +48,7 @@ class GeolocationUtil {
             },
             error => {
                 console.log(error.code, error.message);
-                ToastAndroid.show('Location Problem!', ToastAndroid.LONG);
+                // ToastAndroid.show('Location Problem!', ToastAndroid.LONG);
             },
             { 
                 enableHighAccuracy: true, 

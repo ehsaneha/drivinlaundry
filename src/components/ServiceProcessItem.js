@@ -68,7 +68,7 @@ class ServiceProcessItem extends Component {
     }
 
     render() {
-        const { id, title } = this.props;
+        const { id, title, time } = this.props;
         return (
             <View style={styles.container}>
 
@@ -93,7 +93,7 @@ class ServiceProcessItem extends Component {
 
                 <View style={{ marginLeft: 5 }}>
                     <Title style={{ marginBottom: 0, fontSize: 16 }}>{title}</Title>
-                    <Paragraph style={{ marginTop: 0 }}>Card content</Paragraph>
+                    <Paragraph style={{ marginTop: 0 }}>{time}</Paragraph>
                 </View>
 
                 {this._renderButtonOrDoneOrActivityIndicatorIfNeeded()}

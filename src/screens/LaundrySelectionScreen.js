@@ -28,6 +28,7 @@ class LaundrySelectionScreen extends Component {
             reloadFABVisible: false,
             loading: true,
             selectedIndex: 0,
+            // containerVisible: true,
         };
 
         this.itemsDeActivateFuncs = {};
@@ -46,7 +47,7 @@ class LaundrySelectionScreen extends Component {
                     reloadFABVisible: true,
                     loading: false,
                     selectedIndex: 0,
-                }),
+                }, this._onMarkersListChanged),
             () =>
                 this.setState({
                     loading: false,
@@ -56,8 +57,23 @@ class LaundrySelectionScreen extends Component {
     }
 
     componentDidMount = () => {
-        this.props.screenProps(this);
+        this.props.screenProps.setBeforeNextFABPressed(this.beforeNextFABPressed);
+        // this.props.screenProps.toggleOpacity(this.toggleOpacity);
         this._reloadLaundries();
+    }
+
+    // toggleOpacity = () => {
+    //     this.setState({ containerVisible: !this.state.containerVisible })
+    // }
+
+    _onMarkersListChanged = () => {
+        const{laundriesList, selectedIndex} = this.state;
+
+        let result = laundriesList.map((each, index) => {
+            return { ...each, iconName: 'local-laundry-service', active: (selectedIndex === index) };
+        });
+
+        this.props.screenProps.onMarkersListChanged(result);
     }
 
     beforeNextFABPressed = () => {
@@ -80,7 +96,7 @@ class LaundrySelectionScreen extends Component {
         if (selectedIndex === index) return;
 
         this.itemsDeActivateFuncs[selectedIndex].deActivate();
-        this.setState({ selectedIndex: index });
+        this.setState({ selectedIndex: index }, this._onMarkersListChanged);
     }
 
     _reloadFABPressed = () => {
@@ -177,14 +193,15 @@ class LaundrySelectionScreen extends Component {
     }
 
     render() {
-        return (
-            <View style={styles.container}>
-                {/* <Image
+        // if (this.state.containerVisible) {
+            return (
+                <View style={styles.container} pointerEvents="box-none">
+                    {/* <Image
                     style={styles.backgroundImage}
                     source={require('../assets/map.png')}
                 /> */}
 
-                {/* <MapView
+                    {/* <MapView
                     style={{ flex: 1 }}
                     showsUserLocation={true}
                     showsCompass={true}
@@ -197,13 +214,17 @@ class LaundrySelectionScreen extends Component {
 
                 </MapView> */}
 
-                {this._renderFlatListOrActivityIndicator()}
+                    {this._renderFlatListOrActivityIndicator()}
 
-                {this._renderReloadFAB()}
+                    {this._renderReloadFAB()}
 
 
-            </View>
-        );
+                </View>
+            );
+
+        // }
+
+        // return null;
     }
 }
 export { LaundrySelectionScreen };

@@ -6,8 +6,8 @@ import AlertSuccessOrExit from '../components/AlertSuccessOrExit'
 
 class NetworkUtil {
 
-    serverUrl = 'http://10.0.3.2:800/';
-    // serverUrl = 'http://ehsaneha.ir/';
+    // serverUrl = 'http://10.0.3.2:800/';
+    serverUrl = 'http://ehsaneha.ir/';
     apiUrl = 'api/';
     avatarUrl = 'storage/';
     // avatarUrl = 'storage/avatars/';
@@ -35,7 +35,7 @@ class NetworkUtil {
                     Accept: 'application/json',
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(body).replace('.', ','),
+                body: JSON.stringify(body),
             })
             .then(response => response.json())
             .then(responseJson => onSuccess(responseJson))
@@ -198,7 +198,7 @@ class NetworkUtil {
         );
     }
 
-    updateUserLocation = ({ id }, latitude, longitude, onSuccess, onFail) => {
+    updateUserLocation = ({ id, latitude, longitude }, onSuccess, onFail) => {
         this.postPut(
             'PUT',
             this.apiUrl + `updateUserLocation/${id}`,

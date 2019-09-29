@@ -1,31 +1,41 @@
 import React, { Component } from 'react';
 import {
     View,
-    Text,
-    PermissionsAndroid,
     StyleSheet,
-    Animated,
-    Easing,
-    TouchableOpacity
+    Image,
 } from 'react-native';
 import { Button, FAB, Avatar, DefaultTheme } from 'react-native-paper';
-import Icon from 'react-native-vector-icons/dist/MaterialIcons';
-import { NavigationActions, StackActions } from 'react-navigation'
+import MapView, { Marker } from 'react-native-maps'
+
+import {
+    ClothingSelectionScreen,
+    TimeSelectionScreen,
+    LocationSelectionScreen,
+    CarSelectionScreen,
+    LaundrySelectionScreen,
+    OrderReciepeScreen,
+    PaymentScreen,
+} from '../screens'
 
 import OrderSubViewNavigator from '../navigators/OrderSubViewNavigator'
 import OrderPageIndicator from '../components/OrderPageIndicator'
-import DatabaseUtil from '../database/DatabaseUtil'
 import HandleBackButton from '../components/HandleBackButton'
 import OrderUtil from '../utils/OrderUtil';
+import MarkerIcon from '../components/MarkerIcon'
+import MyNavigator from '../navigators/MyNavigator'
+import GeolocationUtil from '../geolocation/GeolocationUtil'
+import UserUtil from "../utils/UserUtil";
+import DatabaseUtil from '../database/DatabaseUtil'
 
 class OrderScreen extends Component {
     state = {
-        xValue: new Animated.Value(0),
-        fadeValue: new Animated.Value(0),
+        eachPageMarkersList: [[], [], [], [], [], [], [],],
         currentScreenIndex: 0,
+        location: null,
     };
 
     beforeNextFABPressedList = [];
+    toggleOpacityList = [];
 
 
     screens = [
@@ -38,42 +48,108 @@ class OrderScreen extends Component {
         { name: 'Payment', iconName: 'attach-money', ref: null },
     ];
 
-    static router = OrderSubViewNavigator.router;
+    // static router = OrderSubViewNavigator.router;
+
+    componentDidMount() {
+    }
+
+    // _updateUserLocation(latitude, longitude) {
+    //     new UserUtil().updateUserLocation(
+    //         latitude, longitude,
+    //         response => { console.log(response); },
+    //         error => {
+    //             // this._updateUserLocation(latitude, longitude);
+    //             console.log(error);
+    //             // this.setState({
+    //             //     reloadFABVisible: true,
+    //             // });
+    //         }
+    //     );
+    // }
+
+    _getLocation = () => {
+        new GeolocationUtil().getLocation(
+            ({ latitude, longitude }) => {
+
+                this.setState({
+                    location: {
+                        latitude: latitude,
+                        longitude: longitude,
+                        latitudeDelta: 0.003,
+                        longitudeDelta: 0.003,
+                    },
+                });
+
+                DatabaseUtil.data.setting.latitude = latitude;
+                DatabaseUtil.data.setting.longitude = longitude;
+                DatabaseUtil.data.order.location = { latitude, longitude };
+
+
+                // this._updateUserLocation(latitude, longitude);
+            }
+        );
+
+    }
 
     _nextFABPressed = () => {
         let subViewAllowsToGoNext = this.beforeNextFABPressedList[this.state.currentScreenIndex]();
 
         if (subViewAllowsToGoNext) {
-            this.setState({ currentScreenIndex: this.state.currentScreenIndex + 1 },
-                () => {
-                    if (this.state.currentScreenIndex < this.screens.length) {
-                        this.props.navigation.navigate(this.screens[this.state.currentScreenIndex].name);
-                        this.activeNextIndex();
-                    }
-                    else {
-                        // const resetAction = StackActions.reset({
-                        //     index: 0,
-                        //     key: null,
-                        //     actions: [NavigationActions.navigate({ routeName: 'Home' })],
-                        //   });
 
-                        //   this.props.navigation.dispatch(resetAction);
-                        this.props.navigation.navigate('App');
-                    }
-                });
+            const { navigation } = this.props;
+            this.setState({ currentScreenIndex: this.state.currentScreenIndex + 1 }, () => {
+
+                if (this.state.currentScreenIndex < this.screens.length) {
+                    // navigation.navigate(this.screens[this.state.currentScreenIndex].name);
+                    this.activeIndex(this.state.currentScreenIndex);
+
+                    if (this.state.currentScreenIndex === 2) this._getLocation();
+
+
+                    // this.toggleOpacityList[this.state.currentScreenIndex - 1]();
+                }
+                else {
+                    // const resetAction = StackActions.reset({
+                    //     index: 0,
+                    //     key: null,
+                    //     actions: [NavigationActions.navigate({ routeName: 'Home' })],
+                    //   });
+
+                    //   navigation.dispatch(resetAction);
+                    navigation.navigate('App');
+                }
+            });
         }
+
 
     }
 
     _backFABPressed = () => {
-        this.setState({ currentScreenIndex: this.state.currentScreenIndex - 1 },
-            () => {
-                this.props.navigation.goBack(null);
+        if (this.state.currentScreenIndex === 0) {
+            new OrderUtil().clearOrder();
+            this.props.navigation.goBack(null);
+        }
+        else {
+            this.setState({ currentScreenIndex: this.state.currentScreenIndex - 1 }, () => {
+                this.activeIndex(this.state.currentScreenIndex);
 
-                if (this.state.currentScreenIndex > -1) this.activePrevIndex();
-                else new OrderUtil().clearOrder();
-
+                if (this.state.currentScreenIndex === 2) this._getLocation();
             });
+        }
+
+
+
+    }
+
+
+    _onRegionChangeComplete({ latitude, longitude }) {
+        if (this.state.currentScreenIndex === 2) {
+            DatabaseUtil.data.setting.latitude = latitude;
+            DatabaseUtil.data.setting.longitude = longitude;
+            DatabaseUtil.data.order.location = { latitude, longitude };
+
+            // this._updateUserLocation(latitude, longitude);
+        }
     }
 
     _renderNextFAB = () => {
@@ -125,28 +201,103 @@ class OrderScreen extends Component {
         } */
 
 
+    _renderMarkers = () => {
+        const { eachPageMarkersList, currentScreenIndex } = this.state;
+        return eachPageMarkersList[currentScreenIndex].map((each, index) => {
+            // if (index < 3) {
+            if (each.latitude && each.longitude) {
+                return (
+                    <Marker
+                        key={index + '_EachCarMarker'}
+                        coordinate={{
+                            latitude: parseFloat(each.latitude),
+                            longitude: parseFloat(each.longitude),
+                        }}
+                    >
+                        <MarkerIcon iconName={each.iconName} active={each.active} />
+                    </Marker>
+                );
+            }
+            // }
+        });
+    }
+
+    _renderMapIfNeeded() {
+        const { currentScreenIndex } = this.state;
+        if (currentScreenIndex > 1 && currentScreenIndex < 5) {
+            return (
+                <MapView
+                    style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, }}
+                    showsUserLocation={true}
+                    showsCompass={true}
+                    rotateEnabled={false}
+                    onRegionChangeComplete={region => this._onRegionChangeComplete(region)}
+                    initialRegion={this.state.location}
+                >
+
+                    {this._renderMarkers()}
+
+
+                </MapView>
+            );
+        }
+    }
+
+
     render() {
         return (
             <HandleBackButton onPress={this._backFABPressed}>
                 <View style={{ flex: 1 }}>
-                    <OrderSubViewNavigator
+
+                    {this._renderMapIfNeeded()}
+
+                    <MyNavigator
+                        screensList={[
+                            ClothingSelectionScreen,
+                            TimeSelectionScreen,
+                            LocationSelectionScreen,
+                            CarSelectionScreen,
+                            LaundrySelectionScreen,
+                            OrderReciepeScreen,
+                            PaymentScreen,
+                        ]}
                         navigation={this.props.navigation}
-                        screenProps={ref => this.beforeNextFABPressedList[this.state.currentScreenIndex] = ref.beforeNextFABPressed}
+                        index={this.state.currentScreenIndex}
+                        screenProps={{
+                            setBeforeNextFABPressed: beforeNextFABPressed => this.beforeNextFABPressedList[this.state.currentScreenIndex] = beforeNextFABPressed,
+                            onMarkersListChanged: markersList => this.setState(
+                                prevState => {
+                                    state = { ...prevState };
+                                    state.eachPageMarkersList[this.state.currentScreenIndex] = markersList;
+                                    return state;
+                                }
+                            ),
+                        }}
                     />
+                    {/* 
+                    <OrderSubViewNavigator
+                        pointerEvents="none"
+                        navigation={this.props.navigation}
+                        screenProps={{
+                            setBeforeNextFABPressed: beforeNextFABPressed => this.beforeNextFABPressedList[this.state.currentScreenIndex] = beforeNextFABPressed,
+                            onMarkersListChanged: markersList => this.setState(
+                                            prevState => { 
+                                                state = {...prevState};
+                                                state.eachPageMarkersList[this.state.currentScreenIndex] = markersList;
+                                                return state;
+                                            }
+                                        ),
+                            toggleOpacity: toggleOpacity => this.toggleOpacityList[this.state.currentScreenIndex] = toggleOpacity,
+                        }}
+                    /> */}
 
                     {/* {this._renderSettingButton()} */}
 
                     <OrderPageIndicator
                         screensList={this.screens}
-                        onRef={(ref) => {
-                            if (ref) {
-                                return [
-                                    (this.activeNextIndex = ref.activeNextIndex),
-                                    (this.activePrevIndex = ref.activePrevIndex),
-                                ];
-                            }
-                        }}
+                        onRef={activeIndex => this.activeIndex = activeIndex}
                     />
+
 
 
                     {this._renderNextFAB()}
@@ -165,9 +316,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center'
     },
-    card: {
-        margin: 5,
-    },
     nextFAB: {
         position: 'absolute',
         margin: 16,
@@ -181,9 +329,6 @@ const styles = StyleSheet.create({
         bottom: 0,
         backgroundColor: 'white',
     },
-    textInput: {
-        margin: 5,
-    }
 });
 
 

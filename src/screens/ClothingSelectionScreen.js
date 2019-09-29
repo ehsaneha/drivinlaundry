@@ -18,6 +18,9 @@ class ClothingSelectionScreen extends Component {
     constructor(props) {
         super(props);
 
+        // this.state = {
+        //     containerVisible: true,
+        // }
         this.clothings = this.initClothings();
 
         this._onItemChange = this._onItemChange.bind(this);
@@ -27,8 +30,8 @@ class ClothingSelectionScreen extends Component {
     initClothings = () => {
         let result = {};
 
-        const {order} = DatabaseUtil.data;
-        if(order.clothings.length > 0) {
+        const { order } = DatabaseUtil.data;
+        if (order.clothings.length > 0) {
             order.clothings.forEach(element => {
                 result[element.type] = element.count;
             });
@@ -38,8 +41,13 @@ class ClothingSelectionScreen extends Component {
     }
 
     componentDidMount = () => {
-        this.props.screenProps(this);
+        this.props.screenProps.setBeforeNextFABPressed(this.beforeNextFABPressed);
+        // this.props.screenProps.toggleOpacity(this.toggleOpacity);
     }
+
+    // toggleOpacity = () => {
+    //     this.setState({ containerVisible: !this.state.containerVisible })
+    // }
 
     beforeNextFABPressed = () => {
         if (Object.keys(this.clothings).length === 0) {
@@ -88,16 +96,20 @@ class ClothingSelectionScreen extends Component {
 
     render() {
         screenWidth = Math.round(Dimensions.get('window').width);
-        return (
-            <FlatList
-                style={{ flex: 1, marginTop: 60 }}
-                contentContainerStyle={{ alignItems: 'center', }}
-                data={this._generateListItemsData()}
-                renderItem={this._renderEachListItem}
-                numColumns={screenWidth < 400 ? 4 : 5}
-                keyExtractor={(item, index) => index + '_clothings'}
-            />
-        );
+        // if (this.state.containerVisible) {
+            return (
+                <FlatList
+                    style={{ flex: 1, marginTop: 60, }}
+                    contentContainerStyle={{ alignItems: 'center', }}
+                    data={this._generateListItemsData()}
+                    renderItem={this._renderEachListItem}
+                    numColumns={screenWidth < 400 ? 4 : 5}
+                    keyExtractor={(item, index) => index + '_clothings'}
+                />
+            );
+        // }
+
+        // return null;
     }
 }
 

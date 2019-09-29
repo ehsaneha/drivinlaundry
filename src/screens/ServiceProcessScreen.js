@@ -52,6 +52,12 @@ class ServiceProcessScreen extends Component {
             { value: laundry, iconName: 'local-laundry-service' },
         ];
         this.otherUsers.splice(userType - 1, 1);
+        
+        this.props.screenProps.onMarkersListChanged([
+            {latitude: user.latitude, longitude: user.longitude, iconName: 'person', active: false},
+            {latitude: driver.latitude, longitude: driver.longitude, iconName: 'local-taxi', active: false},
+            {latitude: laundry.latitude, longitude: laundry.longitude, iconName: 'local-laundry-service', active: false},
+        ]);
 
         this.orderUtil = new OrderUtil();
 
@@ -63,7 +69,7 @@ class ServiceProcessScreen extends Component {
 
     componentDidMount = () => {
         this._getOrder();
-        this._getLocation();
+        // this._getLocation();
     }
 
     componentWillUnmount = () => {
@@ -71,16 +77,16 @@ class ServiceProcessScreen extends Component {
     }
 
     
-    _getLocation = () => {
-        new GeolocationUtil().getLocation(
-            ({latitude, longitude}) => {
-                this.setState({
-                    userLocation: {latitude, longitude},
-                });
-            }
-        );
+    // _getLocation = () => {
+    //     new GeolocationUtil().getLocation(
+    //         ({latitude, longitude}) => {
+    //             this.setState({
+    //                 userLocation: {latitude, longitude},
+    //             });
+    //         }
+    //     );
 
-    }
+    // }
 
     _getOrder = () => {
         this.orderUtil.getOrderById(
@@ -140,11 +146,12 @@ class ServiceProcessScreen extends Component {
                 }
                 else {
                     DatabaseUtil.clearOrder();
-                    this.props.navigation.navigate('HomeDriver');
-                    NetworkUtil.getOrderIfExists();
+                    this.props.screenProps.screenChange(0);
+                    // this.props.navigation.navigate('HomeDriver');
+                    // NetworkUtil.getOrderIfExists();
                 }
 
-                this.setState(this.initState);
+                // this.setState(this.initState);
 
             }
             else DatabaseUtil.storeOrder();
@@ -195,16 +202,17 @@ class ServiceProcessScreen extends Component {
 
     _renderServiceProcessItems = () => {
         const {serviceProcessesList, turnId} = this.state;
-        return serviceProcessesList.map(eachServiceProcessItem => (
+        return serviceProcessesList.map(each => (
             <ServiceProcessItem
-                key={eachServiceProcessItem.id + '_eachServiceProcessItem'}
-                id={eachServiceProcessItem.id}
-                title={eachServiceProcessItem.title}
-                turn={eachServiceProcessItem.id <= turnId}
-                doneIconVisible={eachServiceProcessItem.id < turnId}
-                buttonVisible={eachServiceProcessItem.buttonVisible && (eachServiceProcessItem.id >= turnId)}
-                // loading={eachServiceProcessItem.loading}
+                key={each.id + '_eachServiceProcessItem'}
+                id={each.id}
+                title={each.title}
+                turn={each.id <= turnId}
+                doneIconVisible={each.id < turnId}
+                buttonVisible={each.buttonVisible && (each.id >= turnId)}
+                // loading={each.loading}
                 onPress={this._doneButtonPressed}
+                time={each.time === '' ? 'Pending...' : moment(each.time).fromNow()}
             />
         ));
     }
@@ -307,10 +315,10 @@ class ServiceProcessScreen extends Component {
                     </Appbar.Header>
 
                     
-                    <Image
+                    {/* <Image
                         style={styles.backgroundImage}
                         source={require('../assets/map.png')}
-                    /> 
+                    />  */}
 
                 {/* <MapView
                     style={{ flex: 1 }}

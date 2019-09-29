@@ -22,44 +22,46 @@ class OrderPageIndicator extends Component {
 
     state = {
         xValue: new Animated.Value(this.initLeft),
+        selectedIndex: 0,
     };
 
-    selectedIndex = 0;
 
 
     componentDidMount() {
-        this.props.onRef(this)
+        this.props.onRef(this.activeIndex)
     }
 
     componentWillUnmount() {
-        this.props.onRef(undefined)
+        this.props.onRef(this.activeIndex)
     }
 
-    activeNextIndex = () => {
-        this.activeIndex(this.selectedIndex + 1);
-    }
+    // activeNextIndex = () => {
+    //     this.activeIndex(this.state.selectedIndex + 1);
+    // }
 
-    activePrevIndex = () => {
-        this.activeIndex(this.selectedIndex - 1);
-    }
+    // activePrevIndex = () => {
+    //     this.activeIndex(this.state.selectedIndex - 1);
+    // }
 
     activeIndex = (index) => {
-        // if(index === this.selectedIndex) return;
+        // if(index === this.state.selectedIndex) return;
 
-        this._toggleIndicator(index);
-        this._toggleIndicator(this.selectedIndex);
+        this.setState({ selectedIndex: index })
+
+        // this._toggleIndicator(index);
+        // this._toggleIndicator(this.state.selectedIndex);
         this._moveAnimation(this.initLeft - (index * this.deltaX));
 
-        this.selectedIndex = index;
+        // this.state.selectedIndex = index;
     }
 
     // toggleActivate = () => {
     //     this._toggleIndicator(index);
     // }
 
-    _toggleIndicator = (index) => {
-        this.props.screensList[index].ref.toggleActivate();
-    }
+    // _toggleIndicator = (index) => {
+    //     this.props.screensList[index].ref.toggleActivate();
+    // }
 
     _moveAnimation = (toValue) => {
         Animated.timing(this.state.xValue, {
@@ -104,12 +106,10 @@ class OrderPageIndicator extends Component {
                     return (
                         <EachPageIndicator
                             key={index + '_EachPageIndicator'}
-                            onRef={ref => each.ref = ref}
+                            // onRef={ref => each.ref = ref}
                             iconName={each.iconName}
-                            style={{
-                                marginLeft: index === 0 ? 0 : 10
-                            }}
-                            active={index === this.selectedIndex}
+                            style={{ marginLeft: index === 0 ? 0 : 10 }}
+                            active={index === this.state.selectedIndex}
                             index={index}
                         />
                     );

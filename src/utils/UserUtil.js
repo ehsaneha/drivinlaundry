@@ -179,11 +179,9 @@ class UserUtil {
             );
     }
 
-    updateUserLocation = (latitude, longitude, onSuccess, onFail) => {
+    updateUserLocation = (onSuccess, onFail) => {
         new NetworkUtil().updateUserLocation(
             DatabaseUtil.data.setting, 
-            latitude, 
-            longitude,
             onSuccess,
             onFail
         );

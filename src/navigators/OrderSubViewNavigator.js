@@ -12,6 +12,7 @@ import {
 import { fadeIn } from 'react-navigation-transitions';
 
 
+
 const OrderSubViewNavigator = createStackNavigator({
     ClothingSelection: ClothingSelectionScreen,
     TimeSelection: TimeSelectionScreen,
@@ -23,7 +24,8 @@ const OrderSubViewNavigator = createStackNavigator({
 }, 
 {
     transitionConfig: () => fadeIn(),
-    headerMode: 'none'
+    headerMode: 'none',
+    transparentCard: true,
 });
 
 export default OrderSubViewNavigator;

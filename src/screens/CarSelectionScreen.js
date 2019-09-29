@@ -28,6 +28,7 @@ class CarSelectionScreen extends Component {
             reloadFABVisible: false,
             loading: true,
             selectedIndex: 0,
+            // containerVisible: true,
         };
 
         this.itemsDeActivateFuncs = {};
@@ -43,14 +44,14 @@ class CarSelectionScreen extends Component {
 
     _reloadDrivers = () => {
         this.userUtil.getDrivers(
-            response => 
+            response =>
                 this.setState({
                     driversList: response,
                     reloadFABVisible: true,
                     loading: false,
                     selectedIndex: 0,
-                }),
-            () => 
+                }, this._onMarkersListChanged),
+            () =>
                 this.setState({
                     loading: false,
                     reloadFABVisible: true,
@@ -59,13 +60,28 @@ class CarSelectionScreen extends Component {
     }
 
     componentDidMount = () => {
-        this.props.screenProps(this);
+        this.props.screenProps.setBeforeNextFABPressed(this.beforeNextFABPressed);
+        // this.props.screenProps.toggleOpacity(this.toggleOpacity);
         this._reloadDrivers();
+    }
+
+    // toggleOpacity = () => {
+    //     this.setState({ containerVisible: !this.state.containerVisible })
+    // }
+
+    _onMarkersListChanged = () => {
+        const{driversList, selectedIndex} = this.state;
+
+        let result = driversList.map((each, index) => {
+            return { ...each, iconName: 'local-taxi', active: (selectedIndex === index) };
+        });
+
+        this.props.screenProps.onMarkersListChanged(result);
     }
 
 
     beforeNextFABPressed = () => {
-        const {driversList, selectedIndex} = this.state;
+        const { driversList, selectedIndex } = this.state;
         if (driversList.length == 0) {
             ToastAndroid.show('You should choose at least one driver!', ToastAndroid.LONG);
             return false;
@@ -80,12 +96,12 @@ class CarSelectionScreen extends Component {
     }
 
     onItemPressed = (index) => {
-        const {selectedIndex} = this.state;
+        const { selectedIndex } = this.state;
         if (selectedIndex === index)
             return;
 
         this.itemsDeActivateFuncs[selectedIndex].deActivate();
-        this.setState({selectedIndex: index});
+        this.setState({ selectedIndex: index }, this._onMarkersListChanged);
     }
 
     _reloadFABPressed = () => {
@@ -163,7 +179,7 @@ class CarSelectionScreen extends Component {
     }
 
     _renderMarkers = () => {
-        const {driversList, selectedIndex} = this.state;
+        const { driversList, selectedIndex } = this.state;
 
         return driversList.map((each, index) => {
             if (index < 3) {
@@ -175,7 +191,7 @@ class CarSelectionScreen extends Component {
                             longitude: parseFloat(each.longitude),
                         }}
                     >
-                        <MarkerIcon iconName='local-taxi' active={selectedIndex === index}/>
+                        <MarkerIcon iconName='local-taxi' active={selectedIndex === index} />
                     </Marker>
                 );
             }
@@ -183,14 +199,16 @@ class CarSelectionScreen extends Component {
     }
 
     render() {
-        return (
-            <View style={styles.container}>
-                {/* <Image
+        // if (this.state.containerVisible) {
+
+            return (
+                <View style={styles.container} pointerEvents="box-none">
+                    {/* <Image
                     style={styles.backgroundImage}
                     source={require('../assets/map.png')}
                 /> */}
 
-                {/* <MapView
+                    {/* <MapView
                     style={{ flex: 1 }}
                     showsUserLocation={true}
                     showsCompass={true}
@@ -203,12 +221,16 @@ class CarSelectionScreen extends Component {
 
                 </MapView>*/}
 
-                {this._renderFlatListOrActivityIndicator()}
+                    {this._renderFlatListOrActivityIndicator()}
 
-                {this._renderReloadFAB()}
+                    {this._renderReloadFAB()}
 
-            </View>
-        );
+                </View>
+            );
+
+        // }
+
+        // return null;
     }
 }
 export { CarSelectionScreen };

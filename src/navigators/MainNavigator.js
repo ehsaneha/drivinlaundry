@@ -10,6 +10,7 @@ import {
     SettingsScreen,
     HomeDriverScreen,
     HomeScreen,
+    DriverLaundryHomeScreen,
 } from '../screens'
 import AppNavigator from './AppNavigator';
 import { fadeIn } from 'react-navigation-transitions';
@@ -21,10 +22,11 @@ const MainNavigator = createStackNavigator(
         SignIn: SignInScreen,
         // App: AppNavigator,
         Settings: SettingsScreen,
-        HomeDriver: HomeDriverScreen,
+        DriverLaundryHome: DriverLaundryHomeScreen,
+        // HomeDriver: HomeDriverScreen,
         Home: HomeScreen,
         Order: OrderScreen,
-        ServiceProcess: ServiceProcessScreen,
+        // ServiceProcess: ServiceProcessScreen,
         Rating: RatingScreen,
     },
     {

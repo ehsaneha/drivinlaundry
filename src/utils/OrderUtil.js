@@ -18,7 +18,7 @@ class OrderUtil {
                 if (DatabaseUtil.orderHasChanged()) {
 
                     DatabaseUtil.storeOrder();
-                   onSuccess();
+                    onSuccess();
                 }
             },
             onFail

@@ -37,7 +37,7 @@ class SignInScreen extends Component {
 
         new UserUtil().getUserByPhonePassword(
             this.state,
-            userType => this.props.navigation.navigate(userType === 1 ? 'Home' : 'HomeDriver'),
+            userType => this.props.navigation.navigate(userType === 1 ? 'Home' : 'DriverLaundryHome'),
             () => {
                 this.setState({
                     loading: false,

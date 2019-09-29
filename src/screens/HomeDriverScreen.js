@@ -8,9 +8,8 @@ import {
     ToastAndroid,
     Image,
 } from "react-native";
-import { ActivityIndicator, Appbar, FAB, DefaultTheme } from 'react-native-paper';
+import { ActivityIndicator, Appbar, FAB, DefaultTheme, Title } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/dist/MaterialCommunityIcons';
-import MapView, { Marker } from 'react-native-maps'
 
 import HandleBackButton from '../components/HandleBackButton'
 import NetworkUtil from '../network/NetworkUtil'
@@ -19,6 +18,7 @@ import GeolocationUtil from '../geolocation/GeolocationUtil'
 import ServiceProcess from '../components/ServiceProcess'
 import OrderUtil from "../utils/OrderUtil";
 import UserUtil from "../utils/UserUtil";
+import MarkerIcon from '../components/MarkerIcon'
 
 class HomeDriverScreen extends Component {
     state = {
@@ -33,7 +33,7 @@ class HomeDriverScreen extends Component {
 
     componentDidMount = () => {
         NetworkUtil.getOrderIfExists = this._reloadFABPressed;
-        this._getLocation();
+        // this._getLocation();
         this._getOrderIfExists();
     }
 
@@ -41,24 +41,24 @@ class HomeDriverScreen extends Component {
         clearTimeout(this.timeOut);
     }
 
-    _getLocation = () => {
-        new GeolocationUtil().getLocation(
-            ({ latitude, longitude }) => {
+    // _getLocation = () => {
+    //     new GeolocationUtil().getLocation(
+    //         ({ latitude, longitude }) => {
 
-                new UserUtil().updateUserLocation(
-                    latitude, longitude,
-                    () => { },
-                    error => {
-                        console.log(error);
-                        this.setState({
-                            reloadFABVisible: true,
-                        });
-                    }
-                );
-            }
-        );
+    //             // new UserUtil().updateUserLocation(
+    //             //     latitude, longitude,
+    //             //     () => { },
+    //             //     error => {
+    //             //         console.log(error);
+    //             //         this.setState({
+    //             //             reloadFABVisible: true,
+    //             //         });
+    //             //     }
+    //             // );
+    //         }
+    //     );
 
-    }
+    // }
 
 
     _visibilityFABPressed = () => {
@@ -80,7 +80,8 @@ class HomeDriverScreen extends Component {
     _getOrderIfExists = () => {
         if (this.state.online) {
             new OrderUtil().getOrderByUserId(
-                () => this.props.navigation.navigate('ServiceProcess'),
+                // () => this.props.navigation.navigate('ServiceProcess'),
+                () => this.props.screenProps.screenChange(1),
                 () => this.timeOut = setTimeout(this._getOrderIfExists, 15000),
                 error => {
                     clearTimeout(this.timeOut);
@@ -110,7 +111,7 @@ class HomeDriverScreen extends Component {
             reloadFABVisible: false,
         }, () => {
             this._getOrderIfExists();
-            this._getLocation();
+            // this._getLocation();
         });
     }
 
@@ -133,10 +134,10 @@ class HomeDriverScreen extends Component {
         const { online, reloadFABVisible } = this.state;
         if (!reloadFABVisible && online) {
             return (
-                <View style={{ flex: 1, alignItems: 'center', marginTop: 200 }}>
-                    <Text>
+                <View style={{ flex: 1,  alignItems: 'center', marginTop: 30 }}>
+                    <Title>
                         Waiting for new task...
-                    </Text>
+                    </Title>
                     <ActivityIndicator
                         animating={true}
                         color={DefaultTheme.colors.primary}
@@ -149,7 +150,7 @@ class HomeDriverScreen extends Component {
     render() {
         return (
             <HandleBackButton>
-                <View style={{ flex: 1 }}>
+                <View style={{ flex: 1 }}  pointerEvents="box-none">
 
                     <Appbar.Header>
                         <View style={{ flexDirection: 'row', height: 40, marginLeft: 10 }}>
@@ -176,6 +177,10 @@ class HomeDriverScreen extends Component {
                     /> */}
 
                     {this._renderActivityIndicatorIfNeeded()}
+
+                    <View pointerEvents="none" style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent' }}>
+                        <MarkerIcon pointerEvents="none" iconName={DatabaseUtil.data.setting.userType === 2 ? 'local-taxi' : 'local-laundry-service'} offset active />
+                    </View>
 
                     {this._renderFABIFNeeded()}
 

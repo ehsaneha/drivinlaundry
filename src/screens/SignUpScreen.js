@@ -43,7 +43,7 @@ class SignUpScreen extends Component {
     _createUser = () => {
         new UserUtil().createUser(
             this.state,
-            userType => this.props.navigation.navigate(userType === 1 ? 'Home' : 'HomeDriver'),
+            userType => this.props.navigation.navigate(userType === 1 ? 'Home' : 'DriverLaundryHome'),
             () =>
                 this.setState({
                     loading: false,

@@ -8,6 +8,7 @@ export * from './LaundrySelectionScreen'
 export * from './OrderReciepeScreen'
 export * from './PaymentScreen'
 
+export * from './DriverLaundryHomeScreen'
 export * from './ServiceProcessScreen'
 export * from './SplashScreen'
 export * from './SignInScreen'

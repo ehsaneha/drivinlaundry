@@ -9,6 +9,7 @@ import { Button, ActivityIndicator, DefaultTheme } from 'react-native-paper';
 import { NavigationActions, StackActions } from 'react-navigation'
 
 import OrderUtil from "../utils/OrderUtil";
+import UserUtil from "../utils/UserUtil";
 
 class PaymentScreen extends Component {
 
@@ -28,20 +29,37 @@ class PaymentScreen extends Component {
             payLoading: true,
         });
 
-        new OrderUtil().createOrder(
-            () => {
-                    // this.props.navigation.navigate('ServiceProcess');
-                    const resetAction = StackActions.reset({
-                        index: 0,
-                        actions: [NavigationActions.navigate({ routeName: 'ServiceProcess' })],
-                    });
-                    this.props.navigation.dispatch(resetAction);
+        new UserUtil().updateUserLocation(
+            response => {
+                console.log(response)
+                new OrderUtil().createOrder(
+                    () => {
+                        // this.props.navigation.navigate('ServiceProcess');
+                        this.props.navigation.navigate('DriverLaundryHome');
+        
+        
+                            // const resetAction = StackActions.reset({
+                            //     index: 0,
+                            //     actions: [NavigationActions.navigate({ routeName: 'ServiceProcess' })],
+                            // });
+                            // this.props.navigation.dispatch(resetAction);
+                    },
+                    () =>
+                        this.setState({
+                            payLoading: false,
+                        })
+                );
             },
-            () =>
-                this.setState({
-                    payLoading: false,
-                })
+            error => {
+                // this._updateUserLocation(latitude, longitude);
+                console.log(error);
+                // this.setState({
+                //     reloadFABVisible: true,
+                // });
+            }
         );
+
+       
     }
 
     _renderPaypalButtonOrActivityIndicator = () => {
@@ -79,6 +97,7 @@ class PaymentScreen extends Component {
                 </Button> */}
             </View>
         );
+        
     }
 }
 export { PaymentScreen };

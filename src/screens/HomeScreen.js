@@ -42,7 +42,7 @@ class HomeScreen extends Component {
 
     _getOrderIfExists = () => {
         this.orderUtil.getOrderByUserId(
-            () => this.props.navigation.navigate('ServiceProcess'),
+            () => this.props.navigation.navigate('DriverLaundryHome'),
             this._reloadHistory,
             () => 
                 this.setState({

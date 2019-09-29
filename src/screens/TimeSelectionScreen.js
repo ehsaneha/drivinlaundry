@@ -20,30 +20,36 @@ class TimeSelectionScreen extends Component {
         let hourNow = moment().format('HH');
         let minuteNow = moment().format('mm');
         let startTime = parseFloat(hourNow) + (parseFloat(minuteNow) < 30 ? 0.5 : 1);
-
+        
         this.state = {
             selectedStartDate: moment(),
             multiSliderValue: [startTime, startTime + 1],
+            // containerVisible: true,
         };
         this.onDateChange = this.onDateChange.bind(this);
         this.beforeNextFABPressed = this.beforeNextFABPressed.bind(this);
     }
 
     componentDidMount = () => {
-        this.props.screenProps(this);
+        this.props.screenProps.setBeforeNextFABPressed(this.beforeNextFABPressed);
+        // this.props.screenProps.toggleOpacity(this.toggleOpacity);
     }
+
+    // toggleOpacity = () => {
+    //     this.setState({ containerVisible: !this.state.containerVisible })
+    // }
 
     _floatToIsoTime = (value) => {
         return (value >= 10 ? '' : '0') + Math.floor(value) + ((value * 10) % 10 === 5 ? ':30' : ':00')
     }
-    
+
     beforeNextFABPressed = () => {
-        const {selectedStartDate, multiSliderValue} = this.state;
+        const { selectedStartDate, multiSliderValue } = this.state;
 
         // DatabaseUtil.data.order.time.start = multiSliderValue[0];
         // DatabaseUtil.data.order.time.end = multiSliderValue[1];
         // DatabaseUtil.data.order.time.date = moment(selectedStartDate).format("YYYY-MM-DD");
-        
+
         let selectedDate = moment(selectedStartDate).format("YYYY-MM-DD");
         let isBefor = moment(selectedDate + ':' + this._floatToIsoTime(multiSliderValue[0]), "YYYY-MM-DD:HH:mm").isBefore();
 
@@ -56,17 +62,17 @@ class TimeSelectionScreen extends Component {
         // console.log(moment().format('YYYY-MM-DD:HH:mm'));
         // console.log(selectedDate + ':' + this._floatToIsoTime(multiSliderValue[0]));
 
-        if(isBefor) {
+        if (isBefor) {
             ToastAndroid.show('You should choose time for future!', ToastAndroid.LONG);
             return false;
         }
 
 
-        DatabaseUtil.data.order.start_time = 
-            multiSliderValue[0] + ' ' + 
-            multiSliderValue[1] + ' ' + 
+        DatabaseUtil.data.order.start_time =
+            multiSliderValue[0] + ' ' +
+            multiSliderValue[1] + ' ' +
             selectedDate;
-            
+
         return true;
 
     }
@@ -78,10 +84,10 @@ class TimeSelectionScreen extends Component {
     }
 
     multiSliderValuesChange = values => {
-        if(values[0] )
-        this.setState({
-            multiSliderValue: values,
-        });
+        if (values[0])
+            this.setState({
+                multiSliderValue: values,
+            });
     };
 
     _floatToTime = (value) => {
@@ -89,44 +95,48 @@ class TimeSelectionScreen extends Component {
     }
 
     render() {
-        const minDate = new Date();
-        const { selectedStartDate, multiSliderValue } = this.state;
-        const startDate = selectedStartDate ? selectedStartDate.toString() : '';
-        return (
-            <View style={styles.container}>
-                <View style={{
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                }}>
-                    <Title>Time: {this._floatToTime(multiSliderValue[0])} - {this._floatToTime(multiSliderValue[1])}</Title>
-                    <MultiSlider
-                        values={[
-                            multiSliderValue[0],
-                            multiSliderValue[1],
-                        ]}
-                        onValuesChange={this.multiSliderValuesChange}
-                        selectedStyle={{
-                            backgroundColor: DefaultTheme.colors.primary,
-                        }}
-                        markerStyle={{backgroundColor: DefaultTheme.colors.primary}}
-                        isMarkersSeparated={true}
-                        sliderLength={360}
-                        min={0}
-                        max={24}
-                        step={0.5}
-                        snapped
+        // if (this.state.containerVisible) {
+            const minDate = new Date();
+            const { selectedStartDate, multiSliderValue } = this.state;
+            const startDate = selectedStartDate ? selectedStartDate.toString() : '';
+            return (
+                <View style={styles.container}>
+                    <View style={{
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}>
+                        <Title>Time: {this._floatToTime(multiSliderValue[0])} - {this._floatToTime(multiSliderValue[1])}</Title>
+                        <MultiSlider
+                            values={[
+                                multiSliderValue[0],
+                                multiSliderValue[1],
+                            ]}
+                            onValuesChange={this.multiSliderValuesChange}
+                            selectedStyle={{
+                                backgroundColor: DefaultTheme.colors.primary,
+                            }}
+                            markerStyle={{ backgroundColor: DefaultTheme.colors.primary }}
+                            isMarkersSeparated={true}
+                            sliderLength={360}
+                            min={0}
+                            max={24}
+                            step={0.5}
+                            snapped
+                        />
+                    </View>
+                    <CalendarPicker
+                        minDate={minDate}
+                        selectedDayColor={DefaultTheme.colors.primary}
+                        // todayBackgroundColor={DefaultTheme.colors.primary}
+                        selectedDayTextColor="#FFFFFF"
+                        onDateChange={this.onDateChange}
                     />
-                </View>
-                <CalendarPicker
-                    minDate={minDate}
-                    selectedDayColor={DefaultTheme.colors.primary}
-                    // todayBackgroundColor={DefaultTheme.colors.primary}
-                    selectedDayTextColor="#FFFFFF"
-                    onDateChange={this.onDateChange}
-                />
 
-            </View>
-        );
+                </View>
+            );
+        // }
+
+        // return null;
     }
 }
 export { TimeSelectionScreen };

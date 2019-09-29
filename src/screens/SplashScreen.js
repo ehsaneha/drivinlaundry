@@ -30,11 +30,12 @@ class SplashScreen extends Component {
                             // console.log(orderIsValid);
                             if(orderIsValid) {
                                 const {done_time} = DatabaseUtil.data.order;
-                                navigation.navigate(done_time === '' ? 'ServiceProcess' : 'Rating');
+                                navigation.navigate(done_time === '' ? 'DriverLaundryHome' : 'Rating');
+                                // navigation.navigate(done_time === '' ? 'ServiceProcess' : 'Rating');
                             }
                             else {
                                 const { userType } = DatabaseUtil.data.setting;
-                                navigation.navigate(userType === 1 ? 'Home' : 'HomeDriver');
+                                navigation.navigate(userType === 1 ? 'Home' : 'DriverLaundryHome');
                             }
 
                         });
